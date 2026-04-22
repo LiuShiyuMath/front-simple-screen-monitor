@@ -17,9 +17,82 @@ APP_MACOS="$APP_CONTENTS/MacOS"
 APP_RESOURCES="$APP_CONTENTS/Resources"
 APP_BINARY="$APP_MACOS/$APP_EXECUTABLE"
 INFO_PLIST="$APP_CONTENTS/Info.plist"
+LOCAL_ZIP_PATH="$DIST_DIR/${APP_DISPLAY_NAME// /-}-macOS.zip"
+SIGNED_ZIP_PATH="$DIST_DIR/${APP_DISPLAY_NAME// /-}-macOS-signed.zip"
+NOTARIZED_ZIP_PATH="$DIST_DIR/${APP_DISPLAY_NAME// /-}-macOS-notarized.zip"
+
+create_zip_for_bundle() {
+  local source_bundle="$1"
+  local zip_path="$2"
+
+  rm -f "$zip_path"
+  ditto -c -k --sequesterRsrc --keepParent "$source_bundle" "$zip_path"
+}
+
+discover_developer_id_identity() {
+  local identities
+  identities="$(security find-identity -v -p codesigning | sed -n 's/.*"\(Developer ID Application:.*\)"/\1/p')"
+
+  if [[ -z "$identities" ]]; then
+    return 1
+  fi
+
+  local count
+  count="$(printf '%s\n' "$identities" | sed '/^$/d' | wc -l | tr -d ' ')"
+
+  if [[ "$count" != "1" ]]; then
+    return 2
+  fi
+
+  printf '%s\n' "$identities"
+}
+
+require_developer_id_identity() {
+  if [[ -n "${APPLE_SIGN_IDENTITY:-}" ]]; then
+    printf '%s\n' "$APPLE_SIGN_IDENTITY"
+    return 0
+  fi
+
+  discover_developer_id_identity
+}
+
+sign_bundle() {
+  local signing_mode="$1"
+
+  case "$signing_mode" in
+    adhoc)
+      codesign --force --deep --sign - "$APP_BUNDLE" >/dev/null
+      ;;
+    developer-id)
+      local identity
+      if ! identity="$(require_developer_id_identity)"; then
+        echo "Developer ID Application identity not found." >&2
+        echo "Set APPLE_SIGN_IDENTITY or install exactly one Developer ID Application certificate." >&2
+        return 1
+      fi
+
+      codesign \
+        --force \
+        --deep \
+        --timestamp \
+        --options runtime \
+        --sign "$identity" \
+        "$APP_BUNDLE" >/dev/null
+      ;;
+    *)
+      echo "Unsupported signing mode: $signing_mode" >&2
+      return 2
+      ;;
+  esac
+}
+
+verify_codesign() {
+  codesign --verify --deep --strict --verbose=2 "$APP_BUNDLE"
+}
 
 build_bundle() {
   local configuration="$1"
+  local signing_mode="${2:-adhoc}"
   local swift_build_flags=("--package-path" "$ROOT_DIR")
 
   if [[ "$configuration" == "release" ]]; then
@@ -71,6 +144,6 @@ build_bundle() {
 </plist>
 PLIST
 
-  # Ad-hoc sign the local bundle so Finder launch/install behaves more like a normal app.
-  codesign --force --deep --sign - "$APP_BUNDLE" >/dev/null
+  sign_bundle "$signing_mode"
+  verify_codesign
 }
