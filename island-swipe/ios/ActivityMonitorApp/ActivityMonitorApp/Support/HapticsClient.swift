@@ -17,5 +17,21 @@ struct HapticsClient {
         }
         #endif
     }
+
+    func tick() {
+        #if canImport(UIKit)
+        let generator = UIImpactFeedbackGenerator(style: .soft)
+        generator.prepare()
+        generator.impactOccurred(intensity: 0.7)
+        #endif
+    }
+
+    func cancel() {
+        #if canImport(UIKit)
+        let generator = UIImpactFeedbackGenerator(style: .rigid)
+        generator.prepare()
+        generator.impactOccurred(intensity: 0.45)
+        #endif
+    }
 }
 
