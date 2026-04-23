@@ -19,8 +19,10 @@ enum IslandPhase: Equatable {
 }
 
 struct MonitorSessionState: Equatable {
+    static let decisionThreshold: Double = 90
     static let dragClamp: Double = 148
     static let decisionOvershoot: Double = 132
+    static let historyLimit: Int = 6
 
     var currentActivity: MonitorActivity?
     var phase: IslandPhase = .idle
@@ -35,7 +37,7 @@ struct MonitorSessionState: Equatable {
     }
 
     var dragProgress: Double {
-        min(abs(dragOffset) / 90.0, 1.0)
+        min(abs(dragOffset) / Self.decisionThreshold, 1.0)
     }
 
     mutating func present(_ activity: MonitorActivity) {
@@ -119,8 +121,7 @@ struct MonitorSessionState: Equatable {
             MonitorHistoryEntry(activity: activity, decision: decision, date: now),
             at: 0
         )
-        history = Array(history.prefix(6))
+        history = Array(history.prefix(Self.historyLimit))
         return decision
     }
 }
-

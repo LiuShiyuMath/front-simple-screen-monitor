@@ -1,6 +1,8 @@
 import SwiftUI
 
 struct HintPanelView: View {
+    private let thresholdLabel = "\(Int(MonitorSessionState.decisionThreshold))pt"
+
     var body: some View {
         VStack(alignment: .leading, spacing: 12) {
             Text("HOW IT WORKS")
@@ -10,8 +12,8 @@ struct HintPanelView: View {
 
             VStack(alignment: .leading, spacing: 9) {
                 HintStep(index: 1, text: "Activity detected → pill expands")
-                HintStep(index: 2, text: "Swipe LEFT beyond 90pt → BLOCK")
-                HintStep(index: 3, text: "Swipe RIGHT beyond 90pt → ALLOW")
+                HintStep(index: 2, text: "Swipe LEFT beyond \(thresholdLabel) → BLOCK")
+                HintStep(index: 3, text: "Swipe RIGHT beyond \(thresholdLabel) → ALLOW")
             }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
@@ -50,4 +52,3 @@ private struct HintStep: View {
         }
     }
 }
-

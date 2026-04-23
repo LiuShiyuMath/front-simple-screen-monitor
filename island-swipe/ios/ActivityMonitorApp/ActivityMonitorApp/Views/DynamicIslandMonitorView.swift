@@ -165,7 +165,7 @@ private struct IdleIslandContent: View {
         }
         .frame(maxWidth: .infinity, maxHeight: .infinity)
         .onAppear {
-            withAnimation(.easeInOut(duration: 1.2).repeatForever(autoreverses: true)) {
+            withAnimation(AnimationTokens.idlePulse) {
                 pulse = true
             }
         }

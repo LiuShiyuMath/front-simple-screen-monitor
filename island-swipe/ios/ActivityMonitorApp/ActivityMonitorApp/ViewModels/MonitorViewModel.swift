@@ -3,7 +3,7 @@ import SwiftUI
 
 @MainActor
 final class MonitorViewModel: ObservableObject {
-    let decisionThreshold: CGFloat = 90
+    let decisionThreshold = CGFloat(MonitorSessionState.decisionThreshold)
 
     @Published private(set) var session = MonitorSessionState()
 
@@ -33,16 +33,12 @@ final class MonitorViewModel: ObservableObject {
 
     func expandNow() {
         autoExpandTask?.cancel()
-        withAnimation(AnimationTokens.islandExpand) {
-            session.expandIfNeeded()
-        }
+        session.expandIfNeeded()
     }
 
     func updateDrag(_ translation: CGFloat) {
         autoExpandTask?.cancel()
-        withAnimation(AnimationTokens.dragResponsive) {
-            session.updateDrag(translation: Double(translation))
-        }
+        session.updateDrag(translation: Double(translation))
 
         let side: Int
         if translation >= decisionThreshold {
@@ -71,10 +67,6 @@ final class MonitorViewModel: ObservableObject {
             threshold: Double(decisionThreshold)
         )
 
-        withAnimation(AnimationTokens.decisionCommit) {
-            objectWillChange.send()
-        }
-
         guard let decision = resolvedDecision else {
             if priorSide == 0 && abs(translation) > 12 {
                 haptics.cancel()
@@ -93,7 +85,7 @@ final class MonitorViewModel: ObservableObject {
                 return
             }
 
-            try? await Task.sleep(nanoseconds: UInt64(seconds * 1_000_000_000))
+            try? await Task.sleep(nanoseconds: Timings.nanos(seconds))
             guard !Task.isCancelled else {
                 return
             }
@@ -112,9 +104,7 @@ final class MonitorViewModel: ObservableObject {
         let activity = activities[cursor % activities.count]
         cursor += 1
 
-        withAnimation(AnimationTokens.activityPresent) {
-            session.present(activity)
-        }
+        session.present(activity)
 
         scheduleAutoExpand()
     }
@@ -132,9 +122,7 @@ final class MonitorViewModel: ObservableObject {
             }
 
             await MainActor.run {
-                withAnimation(AnimationTokens.autoExpand) {
-                    self.session.expandIfNeeded()
-                }
+                self.session.expandIfNeeded()
             }
         }
     }
@@ -152,9 +140,7 @@ final class MonitorViewModel: ObservableObject {
             }
 
             await MainActor.run {
-                withAnimation(AnimationTokens.decisionReset) {
-                    self.session.clearCurrent()
-                }
+                self.session.clearCurrent()
                 self.schedulePresent(after: Timings.nextActivityDelay)
             }
         }
