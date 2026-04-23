@@ -36,6 +36,8 @@ private struct StatCell: View {
             Text("\(value)")
                 .font(.system(size: 28, weight: .bold, design: .monospaced))
                 .foregroundStyle(tint)
+                .contentTransition(.numericText(value: Double(value)))
+                .animation(.spring(response: 0.35, dampingFraction: 0.7), value: value)
 
             Text(label)
                 .font(.system(size: 10, weight: .medium, design: .monospaced))
