@@ -4,17 +4,17 @@ Plan D is `Boil the Lake Hybrid`: ship the complete hackathon demo kit first,
 then treat live performance as an optional bonus.
 
 When asked `what is Demo Kit status?`, answer from this document: Demo Kit is
-`PUBLIC_DEMO_READY_HOSTED_SMOKE_PASS_READY_FOR_FULL_E2E`. The canonical
-60-second recording verifies as `ship 12/12`, and GitHub Pages now serves the
-Watch links plus the public MP4 asset.
+`PUBLIC_DEMO_READY_HOSTED_E2E_PASS_2026-04-24`. The canonical 60-second
+recording verifies as `ship 12/12`, and GitHub Pages hosted e2e passed on
+2026-04-24.
 
 ## Status
 
-Current Demo Kit status: `PUBLIC_DEMO_READY_HOSTED_SMOKE_PASS_READY_FOR_FULL_E2E`.
+Current Demo Kit status: `PUBLIC_DEMO_READY_HOSTED_E2E_PASS_2026-04-24`.
 
-Current D status: `PUBLIC_DEMO_READY_HOSTED_SMOKE_PASS_READY_FOR_FULL_E2E`.
+Current D status: `PUBLIC_DEMO_READY_HOSTED_E2E_PASS_2026-04-24`.
 
-Current e2e status: `HOSTED_SMOKE_PASS_READY_FOR_FULL_E2E`.
+Current e2e status: `HOSTED_E2E_PASS_2026-04-24`.
 
 Canonical local recording status: `COMPLETE`.
 
@@ -39,16 +39,15 @@ Current canonical local evidence:
 
 What changed:
 - `scripts/record-canonical-demo.mjs` produced a canonical local 60-second demo.
-- The current self-verify fixture points at the canonical evidence and public
-  MP4 URL.
+- The current self-verify fixture points at the canonical evidence, public MP4
+  URL, and hosted e2e pass status.
 - Non-strict and strict video self-verification both return `ship` with score
   `12/12`.
 - Local files wire the public static MP4 into `README.md`, `/`, and
   `/island-swipe/`.
-- Hosted probe on 2026-04-24 after push found the public MP4 URL returns
-  `200 video/mp4`, and hosted root plus island-swipe pages contain the Watch
-  link.
-- The e2e status is now `HOSTED_SMOKE_PASS_READY_FOR_FULL_E2E`.
+- Hosted e2e on 2026-04-24 passed for root, island-swipe, MP4 metadata/range
+  loading, and keyboard ALLOW/BLOCK interactions.
+- The e2e status is now `HOSTED_E2E_PASS_2026-04-24`.
 
 Completed:
 - GitHub Pages serves the interactive fallback at `/` and `/island-swipe/`.
@@ -64,17 +63,15 @@ Completed:
 - Text-only design review on 2026-04-24 rates the Demo Kit plan `8/10`.
 
 Hosted deploy result:
-- Full hosted e2e is ready to run next.
+- Full hosted e2e passed on 2026-04-24.
 - Commit `958252d` was pushed to `origin/main`, and GitHub Pages serves the
   public MP4 plus Watch links.
 - Live performance remains a fallback path, not a dependency.
 
 ## Next Plan
 
-1. Run full hosted e2e against the deployed GitHub Pages URLs.
-2. Re-run the current video self-verify commands after any evidence update.
-3. Keep the public MP4 and Watch links unless canonical evidence changes.
-4. Update docs with changed/run/verify/status before calling work done.
+1. Keep the public MP4 and Watch links unless canonical evidence changes.
+2. After evidence changes, re-run self-verify and update changed/run/verify/status docs.
 
 ## 60-Second Script
 
@@ -126,7 +123,7 @@ Hosted e2e after deploy:
 ```bash
 curl -I -L https://liush2yuxjtu.github.io/front-simple-screen-monitor/
 curl -I -L https://liush2yuxjtu.github.io/front-simple-screen-monitor/island-swipe/
-curl -I -L https://liush2yuxjtu.github.io/front-simple-screen-monitor/assets/demo/activity-monitor-canonical-demo-2026-04-24T05-01-34.mp4
+curl -I -L -H "Range: bytes=0-1023" https://liush2yuxjtu.github.io/front-simple-screen-monitor/assets/demo/activity-monitor-canonical-demo-2026-04-24T05-01-34.mp4
 ```
 
 Record the canonical local demo:
@@ -146,8 +143,17 @@ node scripts/video-feature-self-verify.mjs --strict docs/examples/video-feature-
 
 Expected current verdict: `ship` with score `12/12`.
 
-Hosted smoke after deploy: root page has the Watch link, island-swipe page has
-the Watch link, and public MP4 returns `200 video/mp4`.
+Hosted e2e pass evidence on 2026-04-24:
+- `/`: HTTP `200`, no console/page errors, and `Watch: public video` links to
+  the target MP4.
+- `/island-swipe/`: HTTP `200`, no console/page errors, and `Watch: public
+  video` links to the target MP4.
+- MP4 loads as `video/mp4`; range fetch returns `206`; browser metadata is
+  duration `60`, size `1280x720`, `readyState=4`, and `error=null`.
+- Keyboard interaction passes: Space + Enter + ArrowRight records `ALLOWED`
+  with allowed `1` and total `1`; Space + Enter + ArrowLeft records `BLOCKED`
+  with blocked `1` and total `1`.
+- Playwright summary: `pass true`; `network4xx` empty.
 
 Finish-work probes: run the required docs rule, engineer completion,
 recent-work, Demo Kit status, and e2e status `claudefast -p` prompts.
@@ -156,7 +162,7 @@ recent-work, Demo Kit status, and e2e status `claudefast -p` prompts.
 
 Latest local QA: `PASS_WITH_SCOPE_LIMITS`.
 
-Latest e2e status for Demo Kit: `HOSTED_SMOKE_PASS_READY_FOR_FULL_E2E`.
+Latest e2e status for Demo Kit: `HOSTED_E2E_PASS_2026-04-24`.
 
 Verified on 2026-04-24:
 - `/` loads through local preview with no console errors.
@@ -168,23 +174,17 @@ Verified on 2026-04-24:
 - `/gallery/` loads and exposes variant links with no console errors.
 - Local README, `/`, and `/island-swipe/` contain the Watch link.
 
-Hosted probe before deploy on 2026-04-24:
-- `https://liush2yuxjtu.github.io/front-simple-screen-monitor/` returned `200`.
-- `https://liush2yuxjtu.github.io/front-simple-screen-monitor/island-swipe/`
-  returned `200`.
-- The canonical public MP4 URL returned `404`.
-- Hosted pages did not include the new Watch link.
-
-Hosted smoke after deploy on 2026-04-24:
+Hosted e2e after deploy on 2026-04-24:
 - Root page contains `Watch: public video`.
 - Island-swipe page contains `Watch: public video`.
-- Canonical public MP4 returned `200`, `content-type: video/mp4`, and
-  `content-length: 547068`.
+- Canonical public MP4 returned `video/mp4`, supports range fetch `206`, and
+  browser metadata reads duration `60`, size `1280x720`, `readyState=4`.
+- Root and island-swipe pages had no console/page errors.
+- Keyboard ALLOW and BLOCK flows updated the expected counters and verdicts.
+- Playwright summary returned `pass true` with no `network4xx`.
 
 Scope limits:
-- This did not test real touch swipes, only keyboard equivalents.
-- Full hosted e2e should run next now that GitHub Pages serves the public MP4
-  asset and Watch links.
+- This hosted e2e tested keyboard equivalents, not physical touch swipes.
 
 ## Live Runbook
 

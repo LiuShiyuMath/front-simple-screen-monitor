@@ -11,16 +11,16 @@
   },
   "status": {
     "plan": "D: Boil the Lake Hybrid",
-    "demoKitStatus": "PUBLIC_DEMO_READY_HOSTED_E2E_BLOCKED_NOT_DEPLOYED",
-    "dStatus": "PUBLIC_DEMO_READY_HOSTED_E2E_BLOCKED_NOT_DEPLOYED",
-    "e2eStatus": "HOSTED_E2E_BLOCKED_NOT_DEPLOYED",
+    "demoKitStatus": "PUBLIC_DEMO_READY_HOSTED_E2E_PASS_2026-04-24",
+    "dStatus": "PUBLIC_DEMO_READY_HOSTED_E2E_PASS_2026-04-24",
+    "e2eStatus": "HOSTED_E2E_PASS_2026-04-24",
     "canonical60SecondVideo": "local recording complete",
     "canonicalLocalSelfVerify": "ship 12/12",
-    "publicVideoLink": "local wiring ready; hosted asset returned 404 on 2026-04-24",
-    "publicEntryStatus": "Local README, root page, and island-swipe page link to the public static MP4 asset; hosted pages have not deployed those Watch links yet.",
-    "currentBestEvidence": "canonical local evidence plus hosted probe showing deployment is still needed",
+    "publicVideoLink": "hosted asset loads as video/mp4 on 2026-04-24 and supports range fetch 206",
+    "publicEntryStatus": "Hosted root and island-swipe pages return HTTP 200 and include Watch: public video links to the target MP4.",
+    "currentBestEvidence": "canonical local evidence plus hosted e2e pass on 2026-04-24",
     "retainedVerdict": "ship",
-    "reason": "The canonical recording verifies as ship 12/12, but hosted e2e is blocked until the MP4 asset and Watch links are committed, pushed, and deployed."
+    "reason": "The canonical recording verifies as ship 12/12, and hosted e2e passed on 2026-04-24 for root, island-swipe, MP4 metadata/range loading, and keyboard ALLOW/BLOCK interactions."
   },
   "expected": {
     "verdict": "ship",
@@ -129,7 +129,7 @@
   "strangerRetell": "AI asks permission before acting on your screen; swipe right to allow, swipe left to block, and the trust log records it.",
   "tasks": [
     "Keep the public MP4 linked from README, root page, and island-swipe page.",
-    "Commit, push, and wait for GitHub Pages deploy.",
-    "Run full hosted e2e after deploy and require root 200, island-swipe 200, public MP4 200, and hosted Watch links."
+    "Keep the hosted e2e status at HOSTED_E2E_PASS_2026-04-24 unless new evidence changes it.",
+    "For future evidence changes, rerun full hosted e2e and require root 200, island-swipe 200, public MP4 metadata/range loading, Watch links, no console/page errors, and keyboard ALLOW/BLOCK interactions."
   ]
 }
