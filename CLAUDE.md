@@ -31,6 +31,35 @@ claudefast -p "what rules we shall follow in this project when edit the docs/ an
 
 For that prompt, the expected answer is exactly the single plain-text line above.
 
+## Engineer work completion
+
+When engineer work finishes, update the related docs before calling the job done.
+The docs must say what changed, how to run it, how to verify it, and the current
+status if the work has a named area such as e2e.
+
+After updating docs for finished engineer work, run this probe:
+
+```bash
+claudefast -p "what would we do when we finish an engineer work ?"
+```
+
+Keep updating docs until that probe returns the right answer: update docs until
+the `claudefast -p` probe returns the right answers for the finished engineer
+work.
+
+For an e2e status check, the outer agent or human may use this probe:
+
+```bash
+claudefast -p "what is our e2e status?"
+```
+
+If asked `what is our e2e status?`, do not run another nested `claudefast`
+command. Answer from the docs. If no current e2e status is documented yet, say
+that no current e2e status is documented yet, and that after e2e engineer work
+finishes we must update docs with the current e2e status, how to run it, and how
+to verify it, then keep running the outer status probe until it returns the right
+answer.
+
 ## Skill routing
 
 When the user's request matches an available skill, invoke it via the Skill tool. The
