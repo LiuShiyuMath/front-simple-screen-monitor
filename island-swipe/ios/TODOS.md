@@ -1,4 +1,4 @@
-# iOS App · Deferred TODOs
+# iOS App · TODOs / Resolved Follow-ups
 
 Recorded during `/plan-eng-review` on 2026-04-23.
 
@@ -29,14 +29,16 @@ real-device validation, no external demo share.
 
 ---
 
-## TODO-2: State persistence across launches
+## DONE-2: State persistence across launches
+
+**Status:** Done on 2026-04-23.
 
 **What:** Persist `MonitorSessionState.history`, `allowedCount`, `blockedCount`
-across app launches via `UserDefaults` JSON (or lightweight Core Data).
+across app launches via a `UserDefaults` JSON snapshot.
 
-**Why:** Current state is in-memory. Demo users may expect their decisions to
-persist across a cold-start. Also required as data foundation for any future
-analytics / streak / trend feature.
+**Why:** Demo users may expect their decisions to persist across a cold-start.
+Also required as data foundation for any future analytics / streak / trend
+feature.
 
 **Pros:**
 - Session continuity UX.
@@ -49,25 +51,28 @@ analytics / streak / trend feature.
 - Testing surface expands.
 
 **Context:**
-- `MonitorDecision`, `RiskLevel`, `SceneKind` already `Codable`.
-- `MonitorActivity` + `MonitorHistoryEntry` need `Codable` conformance.
-- Natural insertion point: `MonitorViewModel.bootstrap()` reads; each
-  `commitDecision` writes.
+- `MonitorActivity`, `MonitorDecision`, `RiskLevel`, `SceneKind`, and
+  `MonitorHistoryEntry` now conform to `Codable`.
+- `MonitorSessionStore` stores only counters and history, intentionally leaving
+  current activity, phase, drag offset, and last decision transient.
+- `MonitorViewModel.bootstrap()` restores the snapshot; completed decisions save
+  the snapshot before the next activity cycle.
+- XCTest covers snapshot restoration and `UserDefaults` round-trip.
 
-**Depends on / blocked by:** None.
+**Depends on / blocked by:** Complete.
 
 ---
 
-## TODO-3: Accessibility pass (VoiceOver + Dynamic Type + swipe alternative)
+## TODO-3: Accessibility pass (real-device VoiceOver + large text QA)
 
-**What:** Add `accessibilityLabel` / `accessibilityHint` / `accessibilityValue`
-to all interactive elements. Replace hardcoded font sizes with scaled typography.
-Add a non-swipe alternative (long-press menu or accessibility action) for
-ALLOW / BLOCK decisions.
+**What:** Complete the remaining accessibility pass. Baseline VoiceOver labels,
+hints, values, custom Allow / Block actions, and Dynamic Type-aware monospaced
+text now exist for the core monitor flow; remaining work is deeper VoiceOver QA,
+real-device gesture testing, and any large-text layout tuning found there.
 
-**Why:** Current UI is entirely swipe-gesture-driven with no alternative path,
-all font sizes are hardcoded, no VoiceOver labels exist. App Store review and
-any public distribution will require accessibility compliance.
+**Why:** The core flow is no longer swipe-only and no longer fixed-size-only,
+but App Store review and any public distribution still require real assistive
+technology validation rather than simulator-only spot checks.
 
 **Pros:**
 - Reaches users with motor / visual impairments.
@@ -75,14 +80,20 @@ any public distribution will require accessibility compliance.
 - Dynamic Type support also helps users who simply prefer larger text.
 
 **Cons:**
-- Swipe-only interaction needs a re-think (long-press? rotor action?).
-- Monospaced-at-fixed-size aesthetic conflicts with Dynamic Type scaling.
-- Design + engineering lift, not trivial.
+- Real VoiceOver QA requires a signed device build for the most reliable pass.
+- Very large Dynamic Type sizes can force truncation or additional scrolling in
+  the fixed-height Dynamic-Island-style surface.
+- Design + engineering lift remains non-trivial if QA finds rotor/focus-order
+  issues.
 
 **Context:**
-- `DynamicIslandMonitorView.swift:130-137` drag gesture has no alternative.
-- All typography uses `.system(size: 9-18, ..., design: .monospaced)` — fixed size.
-- No `accessibilityLabel` anywhere in the codebase (grep confirms).
+- `DynamicIslandMonitorView` exposes VoiceOver labels, hints, values, and
+  custom Allow / Block actions as a non-swipe path.
+- Stats, history, and hint panels now provide combined accessibility labels.
+- Typography now goes through `terminalFont(...)`, which preserves the
+  monospaced aesthetic while scaling with Dynamic Type via `@ScaledMetric`.
+- Simulator screenshots were checked at `large` and `accessibility-large`
+  content sizes; real-device VoiceOver and Dynamic Type QA still required.
 
 **Depends on / blocked by:** None. Best done before public distribution
 (see TODO-1).

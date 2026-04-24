@@ -125,9 +125,14 @@ ActivityMonitorApp/
 5. Dark appearance default. No light-mode regression.
 6. Runs on iPhone 15 / 15 Pro sim, iOS 17+.
 
-Gates 1–5 verified manually (prototype scope; no XCTest target — see NOT in scope).
-Gate 6 verified by developer local `xcodebuild build -scheme ActivityMonitorApp
--destination 'platform=iOS Simulator,name=iPhone 15'`.
+Gates 1, 2, and 4 are covered by
+`ActivityMonitorAppTests/MonitorSessionStateTests.swift`; the same suite also
+covers the phase guard for non-swipe decision actions.
+Gates 3 and 5 were visually verified in Simulator after launching the app.
+Gate 6 verified locally on available Simulator runtime:
+`xcodebuild test -project island-swipe/ios/ActivityMonitorApp.xcodeproj -scheme ActivityMonitorApp -destination 'platform=iOS Simulator,name=iPhone 16'`.
+The local machine does not currently expose an iPhone 15 / 15 Pro simulator;
+available phone coverage is iPhone 16 on iOS 18.6.
 
 ## What already exists
 
@@ -147,48 +152,51 @@ As of eng review (2026-04-23), implementation at `ActivityMonitorApp/` covers:
   `Views/HintPanelView.swift`, `Views/ActivityScenePreview.swift` — secondary
   panels.
 - `Support/HapticsClient.swift` — UIKit-gated `play` / `tick` / `cancel`.
-- `Theme/TerminalNoirTheme.swift` — color tokens, hex-init Color extension.
+- `Support/MonitorSessionStore.swift` — `UserDefaults` snapshot persistence for
+  counters and history.
+- `Theme/TerminalNoirTheme.swift` — color tokens, Dynamic Type-aware
+  monospace typography helper, hex-init Color extension.
+- `ActivityMonitorAppTests/MonitorSessionStateTests.swift` — XCTest coverage
+  for left/right threshold commits, below-threshold reset, total invariant,
+  decision overshoot, history cap, non-swipe action phase guards, and
+  persistence round-trip.
+- `.github/workflows/ios.yml` — GitHub Actions XCTest workflow for iOS changes,
+  pinned to macOS 15 + Xcode 16.4.
 
 Plan's proposed `Resources/` directory is not used; no asset shipped yet.
 
 ## NOT in scope (explicitly deferred)
 
-- **XCTest target + state-machine unit tests.** `MonitorSessionState` is pure
-  Swift / Equatable and trivially testable, but scope kept prototype-only.
-  Non-negotiables (threshold=90pt, counter invariant, auto-expand=1.2s,
-  history cap=6) currently protected only by manual QA. Acceptance gates 1–5
-  unverifiable automatically. Revisit before public distribution.
-- **CI pipeline (`xcodebuild test` / GitHub Actions).** No automated build
-  verification for gate 6. Relies on developer local environment.
+- **Release CI/CD.** Unit-test CI exists, but archive/export, signing, TestFlight,
+  and release automation are not configured yet.
 - **Distribution (TestFlight / code signing / fastlane).** Simulator-only.
   Real-device validation of haptics requires signing. See `TODOS.md` TODO-1.
-- **State persistence across launches.** Counters + history in-memory only.
-  See `TODOS.md` TODO-2.
-- **Accessibility (VoiceOver labels, Dynamic Type, non-swipe alternative).**
-  Swipe-only interaction with fixed-size monospaced typography. See
-  `TODOS.md` TODO-3.
+- **Full accessibility certification.** Baseline VoiceOver labels, values,
+  hints, non-swipe decision actions, and Dynamic Type-aware typography are in
+  place. Real-device VoiceOver QA and deeper large-text tuning remain deferred.
+  See `TODOS.md` TODO-3.
 - **Localization.** Strings `ALLOW` / `BLOCK` / `MONITOR` hardcoded English;
   title is mixed zh/en literal. Acceptable for prototype demo.
 
 ## Review decisions (2026-04-23 eng review)
 
-Refactor queue; implement alongside current refinement branch:
+Resolved in current refinement branch:
 
-1. **Split `nextCycleTask` into `resetTask` + `presentTask`** — eliminate
+1. **DONE: Split `nextCycleTask` into `resetTask` + `presentTask`** — eliminate
    bootstrap × decision race in `MonitorViewModel.scheduleResetAfterDecision`.
-2. **Separate state commit from animation** — call
+2. **DONE: Separate state commit from animation** — call
    `session.commitDecision(...)` outside `withAnimation`; wrap only the
    post-commit visual trigger.
-3. **Extract `Timings` enum** — move `1.2s auto-expand`, `0.45s bootstrap`,
+3. **DONE: Extract `Timings` enum** — move `1.2s auto-expand`, `0.45s bootstrap`,
    `0.9s reset clear`, `0.5s next-activity delay` to a single module.
-4. **Mark Task handles `nonisolated(unsafe)`** — Swift 6 strict-concurrency
+4. **DONE: Mark Task handles `nonisolated(unsafe)`** — Swift 6 strict-concurrency
    readiness for `MonitorViewModel` `deinit`.
-5. **Extract `AnimationTokens`** — 8 scattered spring
+5. **DONE: Extract `AnimationTokens`** — 8 scattered spring
    `(response, dampingFraction)` pairs → named animations
    (e.g. `.islandOpen`, `.dragResponsive`, `.decisionPop`).
-6. **Name `decisionOvershoot = 132`** — replace magic literal in
+6. **DONE: Name `decisionOvershoot = 132`** — replace magic literal in
    `MonitorSessionState.apply`.
-7. **Cache Terminal Noir grid** — apply `.drawingGroup()` on `Canvas` or
+7. **DONE: Cache Terminal Noir grid** — apply `.drawingGroup()` on `Canvas` or
    render once into cached `Image` to avoid per-frame stride redraw.
 
 ## GSTACK REVIEW REPORT
@@ -197,12 +205,54 @@ Refactor queue; implement alongside current refinement branch:
 |---------------|----------------------|---------------------------------|------|-----------------------|------------------------------|
 | CEO Review    | `/plan-ceo-review`   | Scope & strategy                | 0    | —                     | —                            |
 | Codex Review  | `/codex review`      | Independent 2nd opinion         | 0    | —                     | — (declined inline)          |
-| Eng Review    | `/plan-eng-review`   | Architecture & tests (required) | 1    | issues_open (PLAN)    | 7 issues, 0 critical gaps    |
-| Design Review | `/plan-design-review`| UI/UX gaps                      | 0    | —                     | —                            |
-| DX Review     | `/plan-devex-review` | Developer experience gaps       | 0    | —                     | —                            |
+| Eng Review    | `/plan-eng-review`   | Architecture & tests (required) | 1    | resolved_local         | 7 issues resolved + tests    |
+| Design Review | `/plan-design-review`| UI/UX gaps                      | 1    | local_manual_partial    | 2 fixed, accessibility baseline added |
+| DX Review     | `/plan-devex-review` | Developer experience gaps       | 1    | local_manual_partial    | README + XCTest CI added |
 
-**UNRESOLVED:** 0 — all 7 findings reached a decision.
-**VERDICT:** ENG issues_open — 7 refactor items queued (see Review decisions
-above). Acceptance gates unchanged. Prototype scope confirmed; tests / CI /
-distribution explicitly deferred to `TODOS.md`.
+**UNRESOLVED:** 0 — all 7 findings reached a decision and were implemented.
+**VERDICT:** ENG resolved_local — refactor queue completed; local Simulator
+build, launch, screenshot, and XCTest verification passed. Release CI/CD,
+distribution, and full real-device accessibility QA remain deferred.
 
+## Local DX review (2026-04-23)
+
+The scripted `/plan-devex-review` entrypoint was not available in this
+environment. Manual DX check found no iOS onboarding doc, so
+`island-swipe/ios/README.md` now records requirements, build/test/run commands,
+test coverage, and current limits. `.github/workflows/ios.yml` now runs XCTest
+for iOS changes on macOS 15 with Xcode 16.4. The workflow still needs a real
+GitHub run after push/PR to validate hosted-runner behavior.
+
+## Local design review (2026-04-23)
+
+The scripted `/plan-design-review` entrypoint was not available in this
+environment, so this pass used the Simulator run and recorded demo video at
+`/Users/liushiyu/Movies/activity-monitor-demo-final-2026-04-23.mp4`.
+
+**Verdict:** Visual direction is coherent and demo-ready. Terminal Noir palette,
+functional copy, Dynamic-Island-style pill, and swipe affordance all match
+`island-swipe/DESIGN.md`. No blocker for prototype/demo.
+
+Follow-up polish implemented after this pass:
+
+- First-run idle pill now shows explicit `MONITORING` copy instead of abstract
+  capsules.
+- Expanded island now includes a visible `DRAG TO DECIDE` affordance above the
+  swipe rail.
+- Core monitor flow now exposes VoiceOver label/value/hint text plus custom
+  `Allow` / `Block` actions, guarded to notification/expanded/dragging phases.
+- Monospaced typography now uses `@ScaledMetric` through `terminalFont(...)`;
+  Simulator screenshots were checked at `large` and `accessibility-large`
+  content sizes.
+
+Follow-up polish queue:
+
+1. **DONE: First-run idle state is visually under-explained.** The idle island
+   now shows `MONITORING` before the first activity appears.
+2. **DONE: Swipe affordance depends on reading small helper text.** The
+   expanded island now labels the control with `DRAG TO DECIDE`.
+3. **PARTIAL: Accessibility and Dynamic Type remain the major design debt.**
+   VoiceOver labels, hints, values, custom Allow / Block actions, and
+   Dynamic Type-aware monospaced typography now cover the core flow. Very-large
+   text tuning and real-device VoiceOver QA remain before public distribution.
+   This aligns with `TODOS.md` TODO-3.
