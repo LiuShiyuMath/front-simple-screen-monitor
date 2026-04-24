@@ -1,0 +1,70 @@
+{
+  "schemaVersion": 1,
+  "video": {
+    "label": "canonical-demo-recut",
+    "durationSeconds": 60,
+    "source": "fixture"
+  },
+  "expected": {
+    "verdict": "re-cut",
+    "scoreRange": "7-8"
+  },
+  "scores": {
+    "problemUnderstoodWithin15Seconds": 1,
+    "allowBlockInteractionClear": 2,
+    "aiPermissionLayerNeedClear": 1,
+    "visualDirectionMemorable": 1,
+    "decisionFeedbackObvious": 1,
+    "viewerKnowsHowToTryOrExplain": 1,
+    "total": 7
+  },
+  "evidence": [
+    {
+      "timestamp": "00:04",
+      "agent": "First 15 Seconds Agent",
+      "verdict": "partial",
+      "note": "The prompt appears early, but the risk of AI seeing the screen is not established yet."
+    },
+    {
+      "timestamp": "00:16",
+      "agent": "Interaction Clarity Agent",
+      "verdict": "pass",
+      "note": "ALLOW swipe is readable and changes the allowed count."
+    },
+    {
+      "timestamp": "00:31",
+      "agent": "Proof Shot Agent",
+      "verdict": "partial",
+      "note": "BLOCK happens, but the red denial feedback is too brief to prove the state change."
+    },
+    {
+      "timestamp": "00:49",
+      "agent": "Silent Story Agent",
+      "verdict": "partial",
+      "note": "Stats appear, but the history does not clearly connect to earlier decisions."
+    }
+  ],
+  "proofShots": [
+    { "shot": "screen observation", "timestamp": "00:02", "verdict": "partial", "fix": "Open with the observed screen before the first prompt." },
+    { "shot": "permission request", "timestamp": "00:06", "verdict": "pass", "fix": "" },
+    { "shot": "ALLOW right swipe and green confirmation", "timestamp": "00:16", "verdict": "pass", "fix": "" },
+    { "shot": "BLOCK left swipe and red denial", "timestamp": "00:31", "verdict": "partial", "fix": "Hold the red denial state for at least one second." },
+    { "shot": "trust log or stats/history", "timestamp": "00:49", "verdict": "partial", "fix": "Cut from the decision directly to the matching history row." },
+    { "shot": "high-risk example", "timestamp": "", "verdict": "fail", "fix": "Add a terminal or private-message request before the BLOCK shot." },
+    { "shot": "recovery to the next request", "timestamp": "00:55", "verdict": "pass", "fix": "" }
+  ],
+  "stateChanges": [
+    { "timestamp": "00:06", "change": "permission prompt appears" },
+    { "timestamp": "00:16", "change": "request allowed and count increments" },
+    { "timestamp": "00:31", "change": "request blocked, but denial feedback is too short" },
+    { "timestamp": "00:49", "change": "stats appear without clear history linkage" },
+    { "timestamp": "00:55", "change": "flow returns to next request" }
+  ],
+  "strangerRetell": "I can swipe to allow or block AI actions, but I am not sure why the request is risky.",
+  "tasks": [
+    "Move the screen-observation risk shot into the first five seconds.",
+    "Add a high-risk terminal or private-message example before the BLOCK action.",
+    "Hold the red denial feedback long enough to read.",
+    "Cut from each decision to the matching trust-log or stats update."
+  ]
+}

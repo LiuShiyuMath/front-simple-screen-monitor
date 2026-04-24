@@ -1,0 +1,92 @@
+{
+  "schemaVersion": 1,
+  "video": {
+    "label": "canonical-demo-pass",
+    "durationSeconds": 60,
+    "source": "fixture"
+  },
+  "expected": {
+    "verdict": "ship",
+    "scoreRange": "9-12"
+  },
+  "scores": {
+    "problemUnderstoodWithin15Seconds": {
+      "score": 2,
+      "timestamp": "00:03",
+      "evidence": "Opening shot shows screen context and permission risk."
+    },
+    "allowBlockInteractionClear": {
+      "score": 2,
+      "timestamp": "00:12",
+      "evidence": "Right swipe allows; later left swipe blocks."
+    },
+    "aiPermissionLayerNeedClear": {
+      "score": 2,
+      "timestamp": "00:07",
+      "evidence": "Prompt appears before the AI action."
+    },
+    "visualDirectionMemorable": {
+      "score": 1,
+      "timestamp": "00:18",
+      "evidence": "Dynamic Island treatment is distinctive but not the whole story."
+    },
+    "decisionFeedbackObvious": {
+      "score": 2,
+      "timestamp": "00:28",
+      "evidence": "Green allow and red block states are readable."
+    },
+    "viewerKnowsHowToTryOrExplain": {
+      "score": 1,
+      "timestamp": "00:51",
+      "evidence": "Retell is clear; try-it-next path is visible but brief."
+    },
+    "total": 10
+  },
+  "evidence": [
+    {
+      "timestamp": "00:03",
+      "agent": "First 15 Seconds Agent",
+      "verdict": "pass",
+      "note": "Screen context and permission risk are visible before the first prompt."
+    },
+    {
+      "timestamp": "00:12",
+      "agent": "Interaction Clarity Agent",
+      "verdict": "pass",
+      "note": "Right swipe allows the request and the allowed count increments."
+    },
+    {
+      "timestamp": "00:28",
+      "agent": "Interaction Clarity Agent",
+      "verdict": "pass",
+      "note": "Left swipe blocks a high-risk terminal request and the blocked count increments."
+    },
+    {
+      "timestamp": "00:43",
+      "agent": "Silent Story Agent",
+      "verdict": "pass",
+      "note": "Trust log shows remembered decisions without relying on narration."
+    }
+  ],
+  "proofShots": [
+    { "shot": "screen observation", "timestamp": "00:03", "verdict": "pass", "fix": "" },
+    { "shot": "permission request", "timestamp": "00:07", "verdict": "pass", "fix": "" },
+    { "shot": "ALLOW right swipe and green confirmation", "timestamp": "00:12", "verdict": "pass", "fix": "" },
+    { "shot": "BLOCK left swipe and red denial", "timestamp": "00:28", "verdict": "pass", "fix": "" },
+    { "shot": "trust log or stats/history", "timestamp": "00:43", "verdict": "pass", "fix": "" },
+    { "shot": "high-risk example", "timestamp": "00:25", "verdict": "pass", "fix": "" },
+    { "shot": "recovery to the next request", "timestamp": "00:51", "verdict": "pass", "fix": "" }
+  ],
+  "stateChanges": [
+    { "timestamp": "00:07", "change": "permission prompt appears" },
+    { "timestamp": "00:12", "change": "request allowed and count increments" },
+    { "timestamp": "00:18", "change": "next request setup appears" },
+    { "timestamp": "00:21", "change": "new high-risk request appears" },
+    { "timestamp": "00:28", "change": "request blocked and count increments" },
+    { "timestamp": "00:35", "change": "decision feedback resolves into history" },
+    { "timestamp": "00:43", "change": "trust log updates" },
+    { "timestamp": "00:51", "change": "flow returns to next request" }
+  ],
+  "strangerRetell": "AI asks permission before acting, and I can allow or block with a swipe.",
+  "tasks": []
+}

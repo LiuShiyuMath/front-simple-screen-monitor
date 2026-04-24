@@ -9,6 +9,7 @@ They evaluate the canonical 60-second demo video, not the product roadmap.
 - Product URL or local preview, if available.
 - `docs/video-feature-self-verify.md`.
 - Optional script, storyboard, or shot list.
+- Optional fixture JSON from `docs/examples/`.
 
 ## Coordinator Rules
 
@@ -140,6 +141,31 @@ The coordinator returns:
 5. Shot-to-user-value map.
 6. Ordered re-cut or rewrite tasks.
 7. One-line stranger retell.
+
+## Fixture JSON Contract
+
+Use the example fixtures to test the self-verify script without needing real
+video analysis:
+
+```bash
+node scripts/video-feature-self-verify.mjs docs/examples/video-feature-self-verify.pass.json
+node scripts/video-feature-self-verify.mjs docs/examples/video-feature-self-verify.recut.json
+```
+
+Required top-level fields:
+- `schemaVersion`
+- `video`
+- `expected`
+- `scores`
+- `evidence`
+- `proofShots`
+- `stateChanges`
+- `strangerRetell`
+- `tasks`
+
+The script should derive the verdict from `scores.total`: `9-12` ships, `7-8`
+re-cuts, `5-6` rewrites, and `0-4` means the narrative must be fixed before
+implementation.
 
 ## Ready Prompt
 

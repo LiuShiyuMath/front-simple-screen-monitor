@@ -48,6 +48,20 @@ Use `docs/video-verify-subagents.md` when the video needs an agent team instead
 of a single reviewer. The coordinator should run the subagents, collect
 timestamped evidence, and return one ship/re-cut/rewrite verdict.
 
+## Fixture Verification
+
+When `scripts/video-feature-self-verify.mjs` is available, verify the rubric
+against the minimal examples:
+
+```bash
+node scripts/video-feature-self-verify.mjs docs/examples/video-feature-self-verify.pass.json
+node scripts/video-feature-self-verify.mjs docs/examples/video-feature-self-verify.recut.json
+```
+
+The pass fixture should return `ship` with a score in the 9-12 range. The re-cut
+fixture should return `re-cut` with a score in the 7-8 range and ordered edit
+tasks.
+
 ## Scoring
 
 Score each item 0-2, total 12:
