@@ -2,60 +2,91 @@
 <html lang="zh-CN">
 <head>
   <meta charset="UTF-8" />
-  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>锁屏意图助手 - Swipe Prototype</title>
+  <meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover" />
+  <title>锁屏意图助手 · Action Stream</title>
   <style>
     :root {
-      --bg-0: #030712;
-      --bg-1: #08111f;
-      --glass: rgba(255, 255, 255, 0.09);
-      --glass-strong: rgba(255, 255, 255, 0.15);
-      --line: rgba(255, 255, 255, 0.16);
-      --text: rgba(255, 255, 255, 0.94);
+      --bg-0: #02060f;
+      --bg-1: #060d1c;
+      --glass: rgba(255, 255, 255, 0.085);
+      --glass-strong: rgba(255, 255, 255, 0.16);
+      --line: rgba(255, 255, 255, 0.14);
+      --line-strong: rgba(255, 255, 255, 0.22);
+      --text: rgba(255, 255, 255, 0.96);
       --muted: rgba(255, 255, 255, 0.62);
-      --soft: rgba(255, 255, 255, 0.36);
+      --soft: rgba(255, 255, 255, 0.4);
+      --faint: rgba(255, 255, 255, 0.22);
+      --green: #b7ff5a;
+      --green-deep: #6ee07a;
+      --red: #ff7a99;
       --cyan: #6ee7ff;
-      --lime: #b7ff5a;
-      --red: #ff6b8a;
       --amber: #ffd166;
-      --purple: #c4b5fd;
+      --lilac: #c4b5fd;
+      --quote: #f6f0c4;
     }
 
     * {
       box-sizing: border-box;
       -webkit-tap-highlight-color: transparent;
+      -webkit-user-select: none;
       user-select: none;
     }
 
-    body {
+    html, body {
       margin: 0;
       min-height: 100vh;
+    }
+
+    body {
       display: grid;
       place-items: center;
       background:
-        radial-gradient(circle at 20% 10%, rgba(110, 231, 255, 0.16), transparent 28%),
-        radial-gradient(circle at 82% 28%, rgba(196, 181, 253, 0.13), transparent 26%),
-        radial-gradient(circle at 50% 90%, rgba(183, 255, 90, 0.09), transparent 32%),
-        linear-gradient(145deg, #020617, #07111f 48%, #020617);
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "Inter", "PingFang SC", "Microsoft YaHei", sans-serif;
+        radial-gradient(circle at 18% 8%, rgba(110, 231, 255, 0.18), transparent 30%),
+        radial-gradient(circle at 86% 24%, rgba(196, 181, 253, 0.16), transparent 28%),
+        radial-gradient(circle at 50% 92%, rgba(183, 255, 90, 0.10), transparent 34%),
+        linear-gradient(150deg, #010410, #07101f 48%, #020410);
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Display", "SF Pro Text",
+        "PingFang SC", "Microsoft YaHei", "Inter", system-ui, sans-serif;
       color: var(--text);
       overflow: hidden;
+      letter-spacing: 0.005em;
+    }
+
+    body::before {
+      content: "";
+      position: fixed;
+      inset: -20%;
+      background-image:
+        radial-gradient(circle at 30% 30%, rgba(255,255,255,0.04), transparent 22%),
+        radial-gradient(circle at 70% 70%, rgba(110,231,255,0.05), transparent 22%);
+      filter: blur(40px);
+      animation: aurora 28s ease-in-out infinite alternate;
+      pointer-events: none;
+      z-index: 0;
+    }
+
+    @keyframes aurora {
+      0%   { transform: translate(-2%, -1%) scale(1); }
+      50%  { transform: translate(2%, 1.5%) scale(1.04); }
+      100% { transform: translate(-1%, 2%) scale(1); }
     }
 
     .phone {
+      position: relative;
       width: min(390px, 94vw);
       height: min(844px, 96vh);
-      position: relative;
+      border-radius: 48px;
       overflow: hidden;
-      border-radius: 44px;
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.08), transparent 22%),
-        radial-gradient(circle at 55% 18%, rgba(110, 231, 255, 0.12), transparent 28%),
+        linear-gradient(180deg, rgba(255,255,255,0.07), transparent 22%),
+        radial-gradient(120% 60% at 50% 0%, rgba(110, 231, 255, 0.13), transparent 60%),
+        radial-gradient(140% 70% at 50% 100%, rgba(196, 181, 253, 0.10), transparent 60%),
         linear-gradient(160deg, var(--bg-1), var(--bg-0));
-      border: 1px solid rgba(255, 255, 255, 0.18);
+      border: 1px solid rgba(255,255,255,0.16);
       box-shadow:
-        0 32px 80px rgba(0, 0, 0, 0.62),
-        inset 0 0 0 1px rgba(255, 255, 255, 0.06);
+        0 36px 90px rgba(0,0,0,0.7),
+        inset 0 0 0 1px rgba(255,255,255,0.06);
+      z-index: 1;
     }
 
     .phone::before {
@@ -63,32 +94,33 @@
       position: absolute;
       top: 12px;
       left: 50%;
-      width: 126px;
-      height: 34px;
       transform: translateX(-50%);
+      width: 124px;
+      height: 36px;
       border-radius: 999px;
-      background: rgba(0, 0, 0, 0.72);
-      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.08);
-      z-index: 20;
+      background: rgba(0,0,0,0.85);
+      box-shadow: inset 0 0 0 1px rgba(255,255,255,0.05);
+      z-index: 30;
     }
 
-    .noise {
+    .grain {
       position: absolute;
       inset: 0;
-      opacity: 0.14;
-      background-image:
-        linear-gradient(rgba(255,255,255,0.05) 1px, transparent 1px),
-        linear-gradient(90deg, rgba(255,255,255,0.04) 1px, transparent 1px);
-      background-size: 34px 34px;
-      mask-image: linear-gradient(to bottom, black, transparent 85%);
+      opacity: 0.08;
       pointer-events: none;
+      background-image:
+        radial-gradient(rgba(255,255,255,0.7) 1px, transparent 1px),
+        radial-gradient(rgba(255,255,255,0.5) 1px, transparent 1px);
+      background-size: 3px 3px, 7px 7px;
+      mix-blend-mode: overlay;
+      mask-image: linear-gradient(to bottom, black, transparent 92%);
     }
 
     .statusbar {
       position: absolute;
       top: 22px;
-      left: 28px;
-      right: 28px;
+      left: 30px;
+      right: 30px;
       height: 24px;
       display: flex;
       justify-content: space-between;
@@ -96,8 +128,8 @@
       font-size: 13px;
       font-weight: 700;
       letter-spacing: 0.02em;
-      z-index: 30;
-      color: rgba(255,255,255,0.86);
+      color: rgba(255,255,255,0.92);
+      z-index: 25;
     }
 
     .signals {
@@ -106,61 +138,84 @@
       align-items: center;
     }
 
-    .pill-signal {
+    .battery {
       width: 28px;
       height: 12px;
-      border-radius: 999px;
+      border-radius: 4px;
       border: 1px solid rgba(255,255,255,0.55);
       position: relative;
     }
 
-    .pill-signal::after {
+    .battery::after {
       content: "";
       position: absolute;
-      left: 2px;
-      top: 2px;
-      width: 18px;
-      height: 6px;
-      border-radius: 999px;
-      background: rgba(255,255,255,0.8);
+      left: 1.5px;
+      top: 1.5px;
+      width: 21px;
+      height: 7px;
+      border-radius: 2px;
+      background: rgba(255,255,255,0.85);
+    }
+
+    .battery::before {
+      content: "";
+      position: absolute;
+      right: -3px;
+      top: 3px;
+      width: 2px;
+      height: 4px;
+      border-radius: 1px;
+      background: rgba(255,255,255,0.55);
     }
 
     .header {
       position: absolute;
-      top: 88px;
-      left: 28px;
-      right: 28px;
+      top: 84px;
+      left: 30px;
+      right: 30px;
       z-index: 5;
     }
 
     .time {
-      font-size: 76px;
-      line-height: 0.9;
-      font-weight: 760;
+      font-size: 80px;
+      line-height: 0.88;
+      font-weight: 780;
       letter-spacing: -0.075em;
-      text-shadow: 0 18px 42px rgba(0,0,0,0.42);
+      text-shadow: 0 18px 50px rgba(0,0,0,0.5);
+      font-feature-settings: "tnum" 1;
     }
 
     .date {
-      margin-top: 12px;
+      margin-top: 14px;
       font-size: 15px;
       color: var(--muted);
-      letter-spacing: 0.03em;
+      letter-spacing: 0.02em;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .date .dot {
+      width: 3px;
+      height: 3px;
+      border-radius: 50%;
+      background: var(--soft);
     }
 
     .assistant-chip {
-      margin-top: 26px;
-      width: fit-content;
-      display: flex;
+      margin-top: 22px;
+      display: inline-flex;
       align-items: center;
-      gap: 8px;
-      padding: 9px 12px;
+      gap: 10px;
+      padding: 9px 14px 9px 11px;
       border-radius: 999px;
-      background: rgba(255, 255, 255, 0.08);
-      border: 1px solid rgba(255, 255, 255, 0.12);
-      backdrop-filter: blur(18px);
-      color: rgba(255,255,255,0.76);
-      font-size: 12px;
+      background: rgba(255,255,255,0.07);
+      border: 1px solid rgba(255,255,255,0.13);
+      backdrop-filter: blur(20px);
+      color: rgba(255,255,255,0.84);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     .pulse {
@@ -168,24 +223,24 @@
       height: 8px;
       border-radius: 50%;
       background: var(--cyan);
-      box-shadow: 0 0 0 0 rgba(110, 231, 255, 0.6);
+      box-shadow: 0 0 0 0 rgba(110,231,255,0.55);
       animation: pulse 1.7s infinite;
     }
 
     @keyframes pulse {
-      0% { box-shadow: 0 0 0 0 rgba(110, 231, 255, 0.58); }
-      70% { box-shadow: 0 0 0 10px rgba(110, 231, 255, 0); }
-      100% { box-shadow: 0 0 0 0 rgba(110, 231, 255, 0); }
+      0%   { box-shadow: 0 0 0 0 rgba(110,231,255,0.55); }
+      70%  { box-shadow: 0 0 0 11px rgba(110,231,255,0); }
+      100% { box-shadow: 0 0 0 0 rgba(110,231,255,0); }
     }
 
     .stack-zone {
       position: absolute;
-      left: 20px;
-      right: 20px;
-      bottom: 82px;
-      height: 408px;
+      left: 18px;
+      right: 18px;
+      bottom: 76px;
+      height: 446px;
+      perspective: 1300px;
       z-index: 10;
-      perspective: 1200px;
     }
 
     .card {
@@ -193,22 +248,27 @@
       left: 0;
       right: 0;
       bottom: 0;
-      height: 330px;
-      padding: 22px;
-      border-radius: 34px;
+      height: 410px;
+      padding: 22px 22px 18px;
+      border-radius: 36px;
+      /* Keep the card opaque enough that back cards do not bleed through —
+         backdrop-filter alone is unreliable in some renderers. */
       background:
-        linear-gradient(180deg, rgba(255,255,255,0.19), rgba(255,255,255,0.075)),
-        radial-gradient(circle at 18% 12%, rgba(110,231,255,0.16), transparent 34%),
-        radial-gradient(circle at 90% 90%, rgba(196,181,253,0.16), transparent 42%);
-      border: 1px solid rgba(255,255,255,0.2);
+        linear-gradient(180deg, rgba(20,28,46,0.94), rgba(12,18,32,0.94)),
+        radial-gradient(circle at 16% 8%, rgba(110,231,255,0.22), transparent 40%),
+        radial-gradient(circle at 92% 96%, rgba(196,181,253,0.20), transparent 48%);
+      border: 1px solid rgba(255,255,255,0.18);
       box-shadow:
-        0 28px 50px rgba(0, 0, 0, 0.42),
+        0 30px 60px rgba(0,0,0,0.5),
         inset 0 1px 0 rgba(255,255,255,0.18);
-      backdrop-filter: blur(28px) saturate(150%);
-      transform-origin: 50% 90%;
-      transition: transform 260ms cubic-bezier(.2,.9,.2,1), opacity 260ms ease, filter 260ms ease;
+      backdrop-filter: blur(32px) saturate(160%);
+      transform-origin: 50% 92%;
+      transition: transform 280ms cubic-bezier(.2,.9,.2,1), opacity 260ms ease, filter 260ms ease;
       cursor: grab;
       overflow: hidden;
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
     }
 
     .card:active { cursor: grabbing; }
@@ -218,33 +278,42 @@
       position: absolute;
       inset: 0;
       pointer-events: none;
-      background: linear-gradient(130deg, rgba(255,255,255,0.18), transparent 18%, transparent 72%, rgba(255,255,255,0.08));
-      opacity: 0.65;
+      background: linear-gradient(130deg, rgba(255,255,255,0.16), transparent 18%, transparent 70%, rgba(255,255,255,0.06));
+      opacity: 0.6;
     }
 
+    /* Stack peek: back cards sit slightly higher and shrunk, like an iOS notification pile.
+       We render depth=0 LAST in the DOM (see render() in JS) so it paints on top — that
+       keeps the front card opaque and crisp regardless of back-card content. */
     .card[data-depth="1"] {
-      transform: translateY(18px) scale(0.94);
-      opacity: 0.62;
-      filter: blur(0.3px);
+      transform: translateY(-14px) scale(0.965);
+      opacity: 0.82;
+      filter: blur(0.4px);
     }
 
     .card[data-depth="2"] {
-      transform: translateY(34px) scale(0.88);
-      opacity: 0.36;
-      filter: blur(1px);
+      transform: translateY(-26px) scale(0.93);
+      opacity: 0.5;
+      filter: blur(1.1px);
     }
 
     .card[data-depth="3"] {
-      transform: translateY(48px) scale(0.82);
-      opacity: 0.18;
-      filter: blur(1.6px);
+      transform: translateY(-38px) scale(0.89);
+      opacity: 0.25;
+      filter: blur(1.8px);
     }
 
-    .card.hidden {
+    /* Back cards: hide content so the stack reads as a silhouette pile, not stacked text. */
+    .card[data-depth="1"] > *:not(.card-topline),
+    .card[data-depth="2"] > *,
+    .card[data-depth="3"] > * {
       opacity: 0;
       pointer-events: none;
+      transition: opacity 200ms ease;
     }
+    .card[data-depth="1"] > .card-topline { opacity: 0.55; }
 
+    /* card content */
     .card-topline {
       display: flex;
       align-items: center;
@@ -258,166 +327,275 @@
       display: flex;
       align-items: center;
       gap: 8px;
-      color: rgba(255,255,255,0.7);
-      font-size: 12px;
+      color: rgba(255,255,255,0.78);
+      font-size: 12.5px;
+      font-weight: 600;
+      letter-spacing: 0.01em;
     }
 
     .appdot {
       width: 9px;
       height: 9px;
-      border-radius: 50%;
+      border-radius: 3px;
       background: var(--cyan);
-      box-shadow: 0 0 18px rgba(110,231,255,0.75);
+      box-shadow: 0 0 14px rgba(110,231,255,0.7);
+    }
+
+    .source-time {
+      color: var(--soft);
+      font-weight: 500;
     }
 
     .confidence {
-      font-size: 11px;
-      color: rgba(255,255,255,0.58);
-      padding: 6px 9px;
+      font-size: 10.5px;
+      color: rgba(255,255,255,0.7);
+      padding: 6px 10px;
       border-radius: 999px;
-      border: 1px solid rgba(255,255,255,0.12);
-      background: rgba(0,0,0,0.14);
+      border: 1px solid rgba(255,255,255,0.16);
+      background: rgba(0,0,0,0.18);
+      letter-spacing: 0.05em;
+      font-weight: 600;
     }
 
-    .proposal-label {
-      margin-top: 24px;
+    /* Quote block — patch Story 1 demands "原话引用块在 action title 之上" */
+    .quotes {
       position: relative;
       z-index: 1;
-      font-size: 12px;
-      letter-spacing: 0.08em;
-      color: var(--cyan);
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+      padding: 12px 14px 12px 18px;
+      border-radius: 16px;
+      border-left: 2px solid rgba(246, 240, 196, 0.7);
+      background: rgba(255,255,255,0.045);
+    }
+
+    .quote {
+      font-size: 13.5px;
+      line-height: 1.42;
+      color: rgba(255,255,255,0.86);
+      letter-spacing: 0.005em;
+      position: relative;
+    }
+
+    .quote::before {
+      content: "「";
+      color: rgba(246, 240, 196, 0.5);
+      margin-right: 1px;
       font-weight: 700;
     }
 
+    .quote::after {
+      content: "」";
+      color: rgba(246, 240, 196, 0.5);
+      margin-left: 1px;
+      font-weight: 700;
+    }
+
+    .quote-meta {
+      font-size: 11px;
+      color: var(--soft);
+      margin-top: 2px;
+      letter-spacing: 0.02em;
+    }
+
+    .proposal-block {
+      position: relative;
+      z-index: 1;
+    }
+
+    .proposal-label {
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      color: var(--cyan);
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 6px;
+    }
+
     .action-title {
-      margin-top: 10px;
-      position: relative;
-      z-index: 1;
-      font-size: 32px;
-      line-height: 1.08;
-      letter-spacing: -0.045em;
+      font-size: 26px;
+      line-height: 1.12;
+      letter-spacing: -0.04em;
       font-weight: 820;
+      color: var(--text);
     }
 
-    .action-sub {
-      margin-top: 14px;
+    .action-because {
+      margin-top: 8px;
+      font-size: 12.5px;
+      color: rgba(255,255,255,0.6);
+      line-height: 1.45;
+      letter-spacing: 0.005em;
+    }
+
+    .action-because b {
+      color: rgba(255,255,255,0.78);
+      font-weight: 700;
+      letter-spacing: 0.04em;
+    }
+
+    /* 4 action chips — proposal.md 明确要求 */
+    .chips {
       position: relative;
       z-index: 1;
-      color: rgba(255,255,255,0.66);
-      font-size: 15px;
-      line-height: 1.45;
-      max-width: 94%;
+      margin-top: auto;
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 8px;
     }
 
-    .micro-context {
+    .chip {
+      display: flex;
+      align-items: center;
+      gap: 8px;
+      padding: 11px 12px;
+      border-radius: 14px;
+      background: rgba(255,255,255,0.06);
+      border: 1px solid rgba(255,255,255,0.10);
+      color: rgba(255,255,255,0.88);
+      font-size: 12.5px;
+      font-weight: 600;
+      transition: transform 140ms ease, background 140ms ease;
+    }
+
+    .chip:active {
+      transform: scale(0.97);
+      background: rgba(255,255,255,0.11);
+    }
+
+    .chip.primary {
+      background: linear-gradient(135deg, rgba(183,255,90,0.22), rgba(110,224,122,0.14));
+      border-color: rgba(183,255,90,0.42);
+      color: #e8ffd6;
+    }
+
+    .chip-glyph {
+      width: 18px;
+      height: 18px;
+      border-radius: 6px;
+      background: rgba(255,255,255,0.10);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      color: rgba(255,255,255,0.78);
+      flex-shrink: 0;
+    }
+
+    .chip.primary .chip-glyph {
+      background: rgba(183,255,90,0.28);
+      color: #1a2b08;
+    }
+
+    /* gesture hint row, below stack */
+    .gesture-hints {
       position: absolute;
       left: 22px;
       right: 22px;
-      bottom: 22px;
-      display: grid;
-      grid-template-columns: repeat(3, 1fr);
-      gap: 8px;
-      z-index: 1;
-    }
-
-    .context-item {
-      min-height: 54px;
-      padding: 10px;
-      border-radius: 18px;
-      background: rgba(0,0,0,0.17);
-      border: 1px solid rgba(255,255,255,0.1);
-    }
-
-    .context-k {
-      color: rgba(255,255,255,0.46);
-      font-size: 10px;
-      margin-bottom: 5px;
-    }
-
-    .context-v {
-      color: rgba(255,255,255,0.82);
-      font-size: 12px;
-      line-height: 1.2;
-      font-weight: 650;
-    }
-
-    .gesture-hints {
-      position: absolute;
-      left: 20px;
-      right: 20px;
-      bottom: 32px;
-      height: 34px;
+      bottom: 30px;
+      height: 30px;
       display: grid;
       grid-template-columns: 1fr 1fr 1fr 1fr;
       gap: 7px;
       z-index: 12;
+      transition: opacity 220ms ease;
     }
 
     .hint {
       display: flex;
       align-items: center;
       justify-content: center;
-      gap: 4px;
+      gap: 5px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.06);
-      border: 1px solid rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.54);
-      font-size: 10px;
+      background: rgba(255,255,255,0.05);
+      border: 1px solid rgba(255,255,255,0.07);
+      color: rgba(255,255,255,0.52);
+      font-size: 10.5px;
+      letter-spacing: 0.02em;
       backdrop-filter: blur(14px);
     }
 
-    .hint strong {
-      color: rgba(255,255,255,0.82);
-      font-weight: 750;
+    .hint b {
+      color: rgba(255,255,255,0.86);
+      font-weight: 800;
+      font-size: 12px;
+      width: 14px;
+      text-align: center;
     }
 
+    /* drag-direction overlay (during drag) */
     .decision-overlay {
       position: absolute;
       inset: 0;
       pointer-events: none;
       z-index: 15;
       opacity: 0;
-      transition: opacity 120ms ease;
+      transition: opacity 130ms ease;
+      border-radius: 48px;
     }
 
     .decision-copy {
       position: absolute;
-      top: 318px;
+      top: 64%;
       left: 28px;
       right: 28px;
       text-align: center;
       font-size: 18px;
-      font-weight: 780;
+      font-weight: 800;
       letter-spacing: -0.02em;
-      text-shadow: 0 10px 28px rgba(0,0,0,0.6);
+      text-shadow: 0 12px 32px rgba(0,0,0,0.7);
     }
 
     .decision-copy small {
       display: block;
       margin-top: 8px;
-      font-size: 12px;
-      color: rgba(255,255,255,0.6);
+      font-size: 11.5px;
+      color: rgba(255,255,255,0.62);
       font-weight: 500;
-      letter-spacing: 0;
+      letter-spacing: 0.02em;
+    }
+
+    /* the green flash — Story 1's "淡绿色覆盖层闪一下" moment */
+    .execute-flash {
+      position: absolute;
+      inset: 0;
+      border-radius: 48px;
+      pointer-events: none;
+      z-index: 22;
+      opacity: 0;
+      background: radial-gradient(120% 70% at 80% 30%, rgba(183,255,90,0.42), transparent 60%);
+    }
+
+    .execute-flash.fire {
+      animation: flash 720ms cubic-bezier(.2,.9,.2,1);
+    }
+
+    @keyframes flash {
+      0%   { opacity: 0; }
+      18%  { opacity: 1; }
+      100% { opacity: 0; }
     }
 
     .toast {
       position: absolute;
       left: 50%;
-      bottom: 32px;
-      transform: translateX(-50%) translateY(20px);
-      padding: 12px 16px;
-      min-width: 230px;
+      bottom: 36px;
+      transform: translateX(-50%) translateY(22px);
+      padding: 12px 18px;
+      max-width: 84%;
       text-align: center;
       border-radius: 999px;
-      background: rgba(0,0,0,0.48);
-      border: 1px solid rgba(255,255,255,0.12);
-      backdrop-filter: blur(20px);
-      color: rgba(255,255,255,0.86);
+      background: rgba(8,12,22,0.78);
+      border: 1px solid rgba(255,255,255,0.14);
+      backdrop-filter: blur(22px);
+      color: rgba(255,255,255,0.94);
       font-size: 13px;
+      font-weight: 600;
+      letter-spacing: 0.005em;
       opacity: 0;
       z-index: 40;
-      transition: opacity 220ms ease, transform 220ms ease;
+      transition: opacity 220ms ease, transform 220ms cubic-bezier(.2,.9,.2,1);
+      white-space: nowrap;
     }
 
     .toast.show {
@@ -425,84 +603,132 @@
       transform: translateX(-50%) translateY(0);
     }
 
-    .detail-sheet {
-      position: absolute;
-      left: 16px;
-      right: 16px;
-      bottom: 18px;
-      padding: 20px;
-      border-radius: 32px;
-      background: rgba(8, 15, 28, 0.86);
-      border: 1px solid rgba(255,255,255,0.16);
-      backdrop-filter: blur(28px) saturate(140%);
-      box-shadow: 0 28px 70px rgba(0,0,0,0.62);
-      z-index: 45;
-      transform: translateY(116%);
-      transition: transform 360ms cubic-bezier(.2,.9,.2,1);
+    .toast.execute {
+      background: linear-gradient(135deg, rgba(40,80,28,0.86), rgba(30,60,28,0.86));
+      border-color: rgba(183,255,90,0.5);
+      color: #e8ffd6;
+      box-shadow: 0 16px 50px rgba(80,180,40,0.32);
     }
 
-    .detail-sheet.show {
-      transform: translateY(0);
+    .toast.discard {
+      background: rgba(36,8,16,0.84);
+      border-color: rgba(255,122,153,0.45);
+      color: #ffd6e0;
     }
+
+    /* detail sheet (上滑) — Story 2's "BD 一定会问它怎么知道的" */
+    .detail-sheet {
+      position: absolute;
+      left: 14px;
+      right: 14px;
+      bottom: 16px;
+      padding: 22px 22px 20px;
+      border-radius: 34px;
+      background: rgba(8, 14, 26, 0.92);
+      border: 1px solid rgba(255,255,255,0.18);
+      backdrop-filter: blur(30px) saturate(160%);
+      box-shadow: 0 -10px 60px rgba(0,0,0,0.7);
+      z-index: 45;
+      transform: translateY(118%);
+      transition: transform 380ms cubic-bezier(.18,.92,.2,1);
+    }
+
+    .detail-sheet.show { transform: translateY(0); }
 
     .sheet-grabber {
       width: 42px;
       height: 4px;
       border-radius: 999px;
-      background: rgba(255,255,255,0.28);
-      margin: 0 auto 18px;
+      background: rgba(255,255,255,0.32);
+      margin: 0 auto 16px;
+    }
+
+    .sheet-eyebrow {
+      font-size: 10.5px;
+      letter-spacing: 0.18em;
+      color: var(--cyan);
+      font-weight: 800;
+      text-transform: uppercase;
+      margin-bottom: 6px;
     }
 
     .sheet-title {
       font-size: 22px;
-      font-weight: 800;
+      font-weight: 820;
       letter-spacing: -0.035em;
+      line-height: 1.18;
       margin-bottom: 12px;
     }
 
     .sheet-text {
       color: rgba(255,255,255,0.66);
-      font-size: 14px;
+      font-size: 13px;
       line-height: 1.55;
+      letter-spacing: 0.005em;
     }
 
     .route-line {
-      margin-top: 18px;
+      margin-top: 16px;
       display: grid;
-      gap: 9px;
+      gap: 8px;
     }
 
     .route-step {
-      padding: 12px 13px;
-      border-radius: 18px;
-      background: rgba(255,255,255,0.07);
+      padding: 11px 13px 11px 38px;
+      border-radius: 16px;
+      background: rgba(255,255,255,0.06);
       border: 1px solid rgba(255,255,255,0.08);
-      color: rgba(255,255,255,0.8);
+      color: rgba(255,255,255,0.84);
       font-size: 13px;
+      letter-spacing: 0.005em;
+      position: relative;
     }
+
+    .route-step::before {
+      counter-increment: step;
+      content: counter(step);
+      position: absolute;
+      left: 11px;
+      top: 50%;
+      transform: translateY(-50%);
+      width: 20px;
+      height: 20px;
+      border-radius: 50%;
+      background: rgba(110,231,255,0.18);
+      border: 1px solid rgba(110,231,255,0.4);
+      color: var(--cyan);
+      display: grid;
+      place-items: center;
+      font-size: 11px;
+      font-weight: 800;
+    }
+
+    .route-line { counter-reset: step; }
 
     .sheet-tip {
-      margin-top: 16px;
+      margin-top: 14px;
       color: rgba(255,255,255,0.42);
-      font-size: 12px;
+      font-size: 11.5px;
       text-align: center;
+      letter-spacing: 0.02em;
     }
 
+    /* empty state */
     .empty-state {
       position: absolute;
       left: 26px;
       right: 26px;
-      bottom: 218px;
+      top: 52%;
+      transform: translateY(-50%) translateY(20px);
       text-align: center;
       opacity: 0;
-      transform: translateY(20px);
-      transition: opacity 320ms ease, transform 320ms ease;
+      transition: opacity 360ms ease, transform 360ms ease;
       z-index: 6;
     }
 
     .empty-state.show {
       opacity: 1;
-      transform: translateY(0);
+      transform: translateY(-50%);
     }
 
     .empty-icon {
@@ -512,49 +738,87 @@
       border-radius: 24px;
       display: grid;
       place-items: center;
-      background: rgba(255,255,255,0.08);
-      border: 1px solid rgba(255,255,255,0.12);
-      font-size: 34px;
+      background: linear-gradient(135deg, rgba(183,255,90,0.18), rgba(110,231,255,0.10));
+      border: 1px solid rgba(183,255,90,0.35);
+      font-size: 32px;
+      color: var(--green);
     }
 
     .empty-title {
       font-size: 24px;
-      font-weight: 800;
-      letter-spacing: -0.04em;
+      font-weight: 820;
+      letter-spacing: -0.035em;
     }
 
     .empty-sub {
-      margin-top: 9px;
+      margin-top: 10px;
       color: rgba(255,255,255,0.55);
-      font-size: 14px;
+      font-size: 13.5px;
       line-height: 1.5;
+    }
+
+    .empty-restart {
+      margin-top: 22px;
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      padding: 10px 18px;
+      border-radius: 999px;
+      background: rgba(255,255,255,0.08);
+      border: 1px solid rgba(255,255,255,0.16);
+      color: var(--text);
+      font-size: 12.5px;
+      font-weight: 700;
+      cursor: pointer;
+    }
+
+    /* page footer caption (off-phone) */
+    .caption {
+      position: fixed;
+      left: 50%;
+      bottom: 14px;
+      transform: translateX(-50%);
+      font-size: 11px;
+      color: rgba(255,255,255,0.34);
+      letter-spacing: 0.06em;
+      z-index: 0;
+      text-transform: uppercase;
     }
 
     @media (max-height: 760px) {
       .phone { height: 96vh; }
-      .time { font-size: 62px; }
-      .header { top: 76px; }
-      .stack-zone { bottom: 68px; height: 370px; }
-      .card { height: 305px; }
-      .gesture-hints { bottom: 24px; }
+      .time { font-size: 64px; }
+      .header { top: 70px; }
+      .stack-zone { bottom: 66px; height: 410px; }
+      .card { height: 384px; padding: 20px 20px 16px; }
+      .gesture-hints { bottom: 22px; }
+    }
+
+    @media (max-width: 380px) {
+      .action-title { font-size: 24px; }
+      .quote { font-size: 13px; }
     }
   </style>
 </head>
 <body>
   <main class="phone" aria-label="锁屏意图助手原型">
-    <div class="noise"></div>
+    <div class="grain"></div>
 
     <div class="statusbar">
-      <div>13:42</div>
+      <div id="sbTime">13:42</div>
       <div class="signals">
         <span>5G</span>
-        <span class="pill-signal"></span>
+        <div class="battery"></div>
       </div>
     </div>
 
     <section class="header">
-      <div class="time">13:42</div>
-      <div class="date">4月27日 周一 · 锁屏</div>
+      <div class="time" id="hdrTime">13:42</div>
+      <div class="date">
+        <span>4月27日 周一</span>
+        <span class="dot"></span>
+        <span>朝阳区 · 锁屏</span>
+      </div>
       <div class="assistant-chip">
         <span class="pulse"></span>
         <span>正在把通知流转成行动提案</span>
@@ -564,18 +828,21 @@
     <section class="stack-zone" id="stack"></section>
 
     <section class="gesture-hints" id="hints">
-      <div class="hint"><strong>←</strong>丢掉</div>
-      <div class="hint"><strong>→</strong>执行</div>
-      <div class="hint"><strong>↑</strong>细节</div>
-      <div class="hint"><strong>↓</strong>稍后</div>
+      <div class="hint"><b>←</b>丢掉</div>
+      <div class="hint"><b>→</b>执行</div>
+      <div class="hint"><b>↑</b>判断依据</div>
+      <div class="hint"><b>↓</b>稍后</div>
     </section>
 
     <section class="decision-overlay" id="overlay">
       <div class="decision-copy" id="decisionCopy"></div>
     </section>
 
-    <section class="detail-sheet" id="sheet">
+    <div class="execute-flash" id="flash"></div>
+
+    <section class="detail-sheet" id="sheet" aria-hidden="true">
       <div class="sheet-grabber"></div>
+      <div class="sheet-eyebrow">判断依据</div>
       <div class="sheet-title" id="sheetTitle"></div>
       <div class="sheet-text" id="sheetText"></div>
       <div class="route-line" id="sheetSteps"></div>
@@ -585,79 +852,124 @@
     <section class="empty-state" id="empty">
       <div class="empty-icon">✓</div>
       <div class="empty-title">行动流已清空</div>
-      <div class="empty-sub">没有更多需要你现在判断的主卡片。</div>
+      <div class="empty-sub">通知都已经变成执行结果。<br/>没有更多需要你现在判断的主卡片。</div>
+      <button class="empty-restart" id="restart">↻ 重置 demo</button>
     </section>
 
     <div class="toast" id="toast"></div>
   </main>
 
+  <div class="caption">swipev2 · action stream · 锁屏意图助手</div>
+
   <script>
+    // 4 张卡 = patch 故事 1/2/4/5 的压力测试样本
     const proposals = [
       {
-        source: "微信 · 朋友已到站",
-        confidence: "高置信",
-        label: "当前最可能行动",
-        title: "去北京北站网约车乘车点接人。",
-        sub: "系统推测你不是要读消息，而是要立刻处理接人路径。",
-        ctx: [
-          ["地点", "北京北站"],
-          ["动作", "接人 / 打车"],
-          ["时机", "现在"],
+        source: '微信 · 林林',
+        sourceTime: '02 分钟前',
+        confidence: '高置信',
+        quotes: [
+          { text: '我已经到北京北站了，你到哪了？', meta: '林林 · 02 分钟前' },
+          { text: '上车点不好找，到了联系我。', meta: '林林 · 刚刚' }
         ],
-        detail: "来自微信通知、当前位置和时间窗口的组合判断：对方已经到站，你现在最需要的是找到乘车点并完成接人，而不是继续读聊天记录。",
-        steps: ["打开地图到“北京北站网约车上车点”", "同时保留微信快捷回复", "到达附近后提醒你发送定位"],
-        execute: "已进入：北京北站网约车乘车点路线"
+        label: '当前最可能行动',
+        title: '去北京北站网约车乘车点接人。',
+        because: '<b>位置</b> · <b>时间</b> · <b>通知</b> 三点叠合，这已经不是消息，是接人路径。',
+        chips: [
+          { glyph: '🚗', text: '一键打车', primary: true },
+          { glyph: '📍', text: '乘车点攻略' },
+          { glyph: '🚇', text: '地铁换乘' },
+          { glyph: '💬', text: '到达回复' }
+        ],
+        sheetText: '微信通知、当前位置（朝阳区）、时间窗口（晚高峰）三个信号同时命中。系统判断你不是要继续读消息，而是要立刻处理接人路径——所以把"打车"放在 chip 第一位、把"快捷回复"留作辅助。',
+        steps: [
+          '打开高德地图 / 北京北站网约车上车点导航',
+          '保留微信浮层，到达后一键发送实时位置',
+          '途中静默，避免再次解锁查看消息'
+        ],
+        executeToast: '已进入：北京北站网约车乘车点路线'
       },
       {
-        source: "飞书 · 会议即将开始",
-        confidence: "中高置信",
-        label: "下一步行动提案",
-        title: "打开会议链接并静音入会。",
-        sub: "会议通知和日程重合，当前最可能动作是入会，而不是查看通知。",
-        ctx: [
-          ["App", "飞书"],
-          ["动作", "入会"],
-          ["剩余", "2 分钟"],
+        source: '飞书 · 周会 OKR 同步',
+        sourceTime: '2 分钟后开始',
+        confidence: '中高置信',
+        quotes: [
+          { text: '周会 · OKR 同步即将开始（2 分钟后）', meta: '飞书提醒 · 刚刚' },
+          { text: '与会 8 人 · 你的议题在第 3 项', meta: '日历 · 同步' }
         ],
-        detail: "会议开始前 2 分钟，飞书提醒和日历事件重合。系统将它判断为一个即时执行动作：进入会议、默认静音、准备听会。",
-        steps: ["打开会议链接", "默认关闭麦克风", "浮层保留会议标题"],
-        execute: "已准备：静音入会"
+        label: '下一步行动提案',
+        title: '静音入会，跳过等候室。',
+        because: '<b>通知</b>与<b>日程</b>重合，下一步是入会，不是再读一遍提醒。',
+        chips: [
+          { glyph: '🎙', text: '静音入会', primary: true },
+          { glyph: '📋', text: '查看议程' },
+          { glyph: '📝', text: '同步备忘' },
+          { glyph: '👥', text: '通知联系人' }
+        ],
+        sheetText: '飞书提醒和日历事件在 60 秒内重合。系统把它当成一个执行动作：进入会议、跳过中间确认、默认静音、把日程标题贴在浮层顶部——这是 BD 一定会追问"它怎么知道的"那一段。',
+        steps: [
+          '打开会议链接，跳过中间确认页',
+          '麦克风默认关闭，摄像头交给用户决定',
+          '浮层顶部保留议程标题与第几项'
+        ],
+        executeToast: '已准备：静音入会'
       },
       {
-        source: "外卖 · 骑手即将到达",
-        confidence: "高置信",
-        label: "当前最可能行动",
-        title: "查看骑手位置，准备下楼取餐。",
-        sub: "这不是外卖摘要，而是一个 3 分钟内要发生的动作。",
-        ctx: [
-          ["距离", "约 300m"],
-          ["动作", "取餐"],
-          ["状态", "即将到达"],
+        source: '美团 · 骑手即将到达',
+        sourceTime: '约 300m',
+        confidence: '高置信',
+        quotes: [
+          { text: '您的订单骑手已到达 1 公里内', meta: '美团 · 1 分钟前' },
+          { text: '请准备取餐，预计 3 分钟到达', meta: '美团 · 刚刚' }
         ],
-        detail: "外卖通知显示骑手接近，结合常用取餐地点，系统判断你现在更需要准备取餐，而不是打开外卖详情页慢慢看。",
-        steps: ["显示骑手当前位置", "提醒带门禁卡", "3 分钟后再次震动"],
-        execute: "已打开：骑手实时位置"
+        label: '当前最可能行动',
+        title: '准备下楼取餐。',
+        because: '不是外卖摘要，是 <b>3 分钟内</b> 要发生的执行动作。',
+        chips: [
+          { glyph: '📍', text: '骑手位置', primary: true },
+          { glyph: '🔔', text: '提醒下楼' },
+          { glyph: '📞', text: '联系骑手' },
+          { glyph: '🏠', text: '修改地址' }
+        ],
+        sheetText: '骑手定位与常用取餐地点重合，正在向你逼近。系统不打开外卖详情页，因为你现在更需要的是"几点该下楼"，而不是"还有几分钟到"。',
+        steps: [
+          '打开骑手实时位置浮层',
+          '提醒带门禁卡（基于历史习惯）',
+          '3 分钟后再震一次，避免错过取餐'
+        ],
+        executeToast: '已打开：骑手实时位置'
       },
       {
-        source: "短信 · 验证码",
-        confidence: "中置信",
-        label: "下一步行动提案",
-        title: "把验证码填入刚才的登录页面。",
-        sub: "检测到你刚在网页登录，验证码不是消息，而是待完成动作。",
-        ctx: [
-          ["来源", "短信"],
-          ["动作", "填入"],
-          ["窗口", "60 秒"],
+        source: '短信 · 95588',
+        sourceTime: '4 秒前',
+        confidence: '高置信',
+        quotes: [
+          { text: '【工商银行】您的验证码是 824591，60 秒内有效。', meta: '95588 · 4 秒前' },
+          { text: '请勿向任何人提供此验证码。', meta: '95588 · 同条' }
         ],
-        detail: "短信验证码与刚才的网页登录行为在时间上高度相关。系统把它转成一个填入动作，而不是让你手动复制。",
-        steps: ["复制验证码", "返回上一个 App", "自动聚焦输入框"],
-        execute: "已复制验证码并返回登录页"
+        label: '下一步行动提案',
+        title: '把 824591 填进刚才的登录页。',
+        because: '你刚在 Safari 输入过手机号，验证码不是消息，是 <b>登录的最后一步</b>。',
+        chips: [
+          { glyph: '↵', text: '一键填入', primary: true },
+          { glyph: '⧉', text: '复制' },
+          { glyph: '✓', text: '标为已读' },
+          { glyph: '⚠', text: '报告诈骗' }
+        ],
+        sheetText: '短信验证码与 90 秒前 Safari 的登录行为高度相关。系统把"切回登录页 → 长按复制 → 粘贴 → 切回短信确认"这串十秒的小苦折叠成一个动作——这就是大舞台 60 秒 demo 中观众笑出来的那张卡。',
+        steps: [
+          '复制 824591 到剪贴板',
+          '切回 Safari 上一个标签页',
+          '自动聚焦验证码输入框并填入'
+        ],
+        executeToast: '已填入：824591 → Safari 登录页'
       }
     ];
 
     const stack = document.getElementById('stack');
     const overlay = document.getElementById('overlay');
     const decisionCopy = document.getElementById('decisionCopy');
+    const flash = document.getElementById('flash');
     const toast = document.getElementById('toast');
     const sheet = document.getElementById('sheet');
     const sheetTitle = document.getElementById('sheetTitle');
@@ -665,47 +977,64 @@
     const sheetSteps = document.getElementById('sheetSteps');
     const empty = document.getElementById('empty');
     const hints = document.getElementById('hints');
+    const restart = document.getElementById('restart');
 
-    let queue = [...proposals];
-    let activeCard = null;
-    let startX = 0;
-    let startY = 0;
-    let currentX = 0;
-    let currentY = 0;
+    let queue = [];
+    let active = null;
+    let startX = 0, startY = 0, dx = 0, dy = 0;
     let dragging = false;
     let toastTimer = null;
+    let lockUntilSettled = false;
 
-    function renderStack() {
+    function reset() {
+      queue = proposals.map(p => ({ ...p }));
+      empty.classList.remove('show');
+      hints.style.opacity = '1';
+      render();
+    }
+
+    function render() {
       stack.innerHTML = '';
       const visible = queue.slice(0, 4);
-
-      visible.forEach((item, index) => {
+      // Render BACK-TO-FRONT so the front card (depth=0) is appended last
+      // and paints on top. Back cards become silhouettes behind it.
+      const ordered = visible.map((item, i) => ({ item, depth: i })).reverse();
+      ordered.forEach(({ item, depth }) => {
         const card = document.createElement('article');
         card.className = 'card';
-        card.dataset.depth = index;
+        card.dataset.depth = depth;
         card.innerHTML = `
           <div class="card-topline">
-            <div class="source"><span class="appdot"></span>${item.source}</div>
+            <div class="source">
+              <span class="appdot"></span>
+              <span>${item.source}</span>
+              <span class="source-time">· ${item.sourceTime}</span>
+            </div>
             <div class="confidence">${item.confidence}</div>
           </div>
-          <div class="proposal-label">${item.label}</div>
-          <div class="action-title">${item.title}</div>
-          <div class="action-sub">${item.sub}</div>
-          <div class="micro-context">
-            ${item.ctx.map(([k, v]) => `
-              <div class="context-item">
-                <div class="context-k">${k}</div>
-                <div class="context-v">${v}</div>
-              </div>
+          <div class="quotes">
+            ${item.quotes.map(q => `
+              <div class="quote">${q.text}</div>
+              <div class="quote-meta">${q.meta}</div>
             `).join('')}
           </div>
+          <div class="proposal-block">
+            <div class="proposal-label">${item.label}</div>
+            <div class="action-title">${item.title}</div>
+            <div class="action-because">${item.because}</div>
+          </div>
+          <div class="chips">
+            ${item.chips.map(c => `
+              <button class="chip${c.primary ? ' primary' : ''}" type="button">
+                <span class="chip-glyph">${c.glyph}</span>
+                <span>${c.text}</span>
+              </button>`).join('')}
+          </div>
         `;
-
-        if (index === 0) {
-          card.addEventListener('pointerdown', onPointerDown);
-          activeCard = card;
+        if (depth === 0) {
+          card.addEventListener('pointerdown', onDown);
+          active = card;
         }
-
         stack.appendChild(card);
       });
 
@@ -715,155 +1044,186 @@
       }
     }
 
-    function onPointerDown(e) {
+    function onDown(e) {
       if (sheet.classList.contains('show')) return;
+      if (lockUntilSettled) return;
+      // chip clicks shouldn't start drag
+      if (e.target.closest('.chip')) {
+        e.stopPropagation();
+        chipFeedback(e.target.closest('.chip'));
+        return;
+      }
       dragging = true;
       startX = e.clientX;
       startY = e.clientY;
-      currentX = 0;
-      currentY = 0;
-      activeCard = e.currentTarget;
-      activeCard.setPointerCapture(e.pointerId);
-      activeCard.style.transition = 'none';
-      window.addEventListener('pointermove', onPointerMove);
-      window.addEventListener('pointerup', onPointerUp, { once: true });
+      dx = 0; dy = 0;
+      active = e.currentTarget;
+      // Listeners FIRST so they fire even if pointer capture throws
+      // (synthetic pointer events can have unusable pointerId).
+      window.addEventListener('pointermove', onMove);
+      window.addEventListener('pointerup', onUp, { once: true });
+      try { active.setPointerCapture(e.pointerId); } catch (_) { /* ignore */ }
+      active.style.transition = 'none';
+      e.preventDefault?.();
     }
 
-    function onPointerMove(e) {
-      if (!dragging || !activeCard) return;
-      currentX = e.clientX - startX;
-      currentY = e.clientY - startY;
-      const rotate = currentX / 18;
-      activeCard.style.transform = `translate(${currentX}px, ${currentY}px) rotate(${rotate}deg)`;
-      updateOverlay(currentX, currentY);
+    function chipFeedback(chip) {
+      const text = chip.querySelector('span:last-child').textContent;
+      showToast(`chip · ${text}（demo · 未实际跳转）`);
     }
 
-    function onPointerUp() {
-      if (!dragging || !activeCard) return;
+    function onMove(e) {
+      if (!dragging || !active) return;
+      dx = e.clientX - startX;
+      dy = e.clientY - startY;
+      const rot = dx / 22;
+      active.style.transform = `translate(${dx}px, ${dy}px) rotate(${rot}deg)`;
+      paintOverlay(dx, dy);
+    }
+
+    function onUp() {
+      if (!dragging || !active) return;
       dragging = false;
-      window.removeEventListener('pointermove', onPointerMove);
-
-      const absX = Math.abs(currentX);
-      const absY = Math.abs(currentY);
-      const threshold = 96;
-
-      if (absX < threshold && absY < threshold) {
-        resetCard();
-        return;
-      }
-
-      if (absX > absY) {
-        currentX > 0 ? decide('execute') : decide('discard');
+      window.removeEventListener('pointermove', onMove);
+      const ax = Math.abs(dx), ay = Math.abs(dy);
+      const T = 96;
+      if (ax < T && ay < T) { springBack(); return; }
+      if (ax > ay) {
+        decide(dx > 0 ? 'execute' : 'discard');
       } else {
-        currentY < 0 ? decide('detail') : decide('later');
+        decide(dy < 0 ? 'detail' : 'later');
       }
     }
 
-    function updateOverlay(x, y) {
-      const absX = Math.abs(x);
-      const absY = Math.abs(y);
-      const intensity = Math.min(Math.max(Math.max(absX, absY) / 130, 0), 1);
-      overlay.style.opacity = intensity;
-
-      if (absX > absY) {
+    function paintOverlay(x, y) {
+      const ax = Math.abs(x), ay = Math.abs(y);
+      const k = Math.min(Math.max(Math.max(ax, ay) / 130, 0), 1);
+      overlay.style.opacity = k;
+      if (ax > ay) {
         if (x > 0) {
-          overlay.style.background = `linear-gradient(90deg, rgba(183,255,90,${0.28 * intensity}), transparent 58%)`;
-          decisionCopy.innerHTML = `执行这张行动提案<small>右滑进入下一步</small>`;
+          overlay.style.background = `linear-gradient(90deg, rgba(183,255,90,${0.32 * k}), transparent 58%)`;
+          decisionCopy.innerHTML = `执行这张行动提案<small>右滑 → 进入下一步</small>`;
         } else {
-          overlay.style.background = `linear-gradient(270deg, rgba(255,107,138,${0.28 * intensity}), transparent 58%)`;
-          decisionCopy.innerHTML = `丢掉这张卡<small>左滑，不再打扰</small>`;
+          overlay.style.background = `linear-gradient(270deg, rgba(255,122,153,${0.30 * k}), transparent 58%)`;
+          decisionCopy.innerHTML = `丢掉这张卡<small>左滑 ← 不再打扰</small>`;
         }
       } else {
         if (y < 0) {
-          overlay.style.background = `linear-gradient(0deg, rgba(110,231,255,${0.26 * intensity}), transparent 58%)`;
-          decisionCopy.innerHTML = `展开细节<small>上滑，看判断依据</small>`;
+          overlay.style.background = `linear-gradient(0deg, rgba(110,231,255,${0.28 * k}), transparent 58%)`;
+          decisionCopy.innerHTML = `展开判断依据<small>上滑 ↑ 看它怎么推理出来的</small>`;
         } else {
-          overlay.style.background = `linear-gradient(180deg, rgba(255,209,102,${0.24 * intensity}), transparent 58%)`;
-          decisionCopy.innerHTML = `稍后再处理<small>下滑，放回队列末尾</small>`;
+          overlay.style.background = `linear-gradient(180deg, rgba(255,209,102,${0.26 * k}), transparent 58%)`;
+          decisionCopy.innerHTML = `稍后再处理<small>下滑 ↓ 放回卡堆末尾</small>`;
         }
       }
     }
 
-    function resetCard() {
-      if (!activeCard) return;
-      activeCard.style.transition = 'transform 260ms cubic-bezier(.2,.9,.2,1)';
-      activeCard.style.transform = '';
+    function springBack() {
+      if (!active) return;
+      active.style.transition = 'transform 280ms cubic-bezier(.2,.9,.2,1)';
+      active.style.transform = '';
       overlay.style.opacity = 0;
     }
 
     function decide(type) {
       const item = queue[0];
-      if (!item || !activeCard) return;
-
+      if (!item || !active) return;
       overlay.style.opacity = 0;
-      activeCard.style.transition = 'transform 260ms ease, opacity 240ms ease';
+      active.style.transition = 'transform 320ms cubic-bezier(.2,.7,.2,1), opacity 280ms ease';
+      lockUntilSettled = true;
 
       if (type === 'execute') {
-        activeCard.style.transform = 'translate(460px, -20px) rotate(18deg)';
-        activeCard.style.opacity = '0';
-        showToast(item.execute);
-        shiftQueue();
-      }
-
-      if (type === 'discard') {
-        activeCard.style.transform = 'translate(-460px, -16px) rotate(-18deg)';
-        activeCard.style.opacity = '0';
-        showToast('已丢掉：这张行动提案');
-        shiftQueue();
-      }
-
-      if (type === 'later') {
-        activeCard.style.transform = 'translateY(420px) scale(0.92)';
-        activeCard.style.opacity = '0';
+        flash.classList.remove('fire');
+        // restart animation
+        void flash.offsetWidth;
+        flash.classList.add('fire');
+        active.style.transform = 'translate(480px, -28px) rotate(20deg)';
+        active.style.opacity = '0';
+        showToast(item.executeToast, 'execute');
+        shift();
+      } else if (type === 'discard') {
+        active.style.transform = 'translate(-480px, -22px) rotate(-20deg)';
+        active.style.opacity = '0';
+        showToast('已丢掉：这张行动提案', 'discard');
+        shift();
+      } else if (type === 'later') {
+        active.style.transform = 'translateY(440px) scale(0.92)';
+        active.style.opacity = '0';
         showToast('已放到卡堆末尾');
         const first = queue.shift();
         queue.push(first);
-        setTimeout(renderStack, 230);
-      }
-
-      if (type === 'detail') {
-        resetCard();
+        setTimeout(() => { render(); lockUntilSettled = false; }, 260);
+      } else if (type === 'detail') {
+        springBack();
         openSheet(item);
+        lockUntilSettled = false;
       }
     }
 
-    function shiftQueue() {
+    function shift() {
       queue.shift();
-      setTimeout(renderStack, 230);
+      setTimeout(() => { render(); lockUntilSettled = false; }, 260);
     }
 
     function openSheet(item) {
       sheetTitle.textContent = item.title;
-      sheetText.textContent = item.detail;
-      sheetSteps.innerHTML = item.steps.map(step => `<div class="route-step">${step}</div>`).join('');
+      sheetText.textContent = item.sheetText;
+      sheetSteps.innerHTML = item.steps.map(s => `<div class="route-step">${s}</div>`).join('');
       sheet.classList.add('show');
+      sheet.setAttribute('aria-hidden', 'false');
     }
 
     function closeSheet() {
       sheet.classList.remove('show');
+      sheet.setAttribute('aria-hidden', 'true');
     }
 
-    function showToast(text) {
+    function showToast(text, kind) {
       clearTimeout(toastTimer);
       toast.textContent = text;
+      toast.classList.remove('execute', 'discard');
+      if (kind) toast.classList.add(kind);
       toast.classList.add('show');
-      toastTimer = setTimeout(() => toast.classList.remove('show'), 1500);
+      toastTimer = setTimeout(() => toast.classList.remove('show'), 1700);
     }
 
+    // close sheet on outside tap or downward drag
     document.querySelector('.phone').addEventListener('click', (e) => {
       if (sheet.classList.contains('show') && !sheet.contains(e.target)) closeSheet();
     });
 
     let sheetStartY = 0;
-    sheet.addEventListener('pointerdown', (e) => {
-      sheetStartY = e.clientY;
-    });
-
+    sheet.addEventListener('pointerdown', (e) => { sheetStartY = e.clientY; });
     sheet.addEventListener('pointerup', (e) => {
       if (e.clientY - sheetStartY > 70) closeSheet();
     });
 
-    renderStack();
+    // keyboard shortcuts (helpful for desktop demo)
+    window.addEventListener('keydown', (e) => {
+      if (sheet.classList.contains('show')) {
+        if (e.key === 'Escape' || e.key === 'ArrowDown') closeSheet();
+        return;
+      }
+      if (!queue.length) return;
+      if (e.key === 'ArrowRight') decide('execute');
+      else if (e.key === 'ArrowLeft') decide('discard');
+      else if (e.key === 'ArrowUp') decide('detail');
+      else if (e.key === 'ArrowDown') decide('later');
+    });
+
+    restart.addEventListener('click', reset);
+
+    // live clock in status bar (header clock stays at the demo "13:42" anchor)
+    function tick() {
+      const d = new Date();
+      const hh = String(d.getHours()).padStart(2, '0');
+      const mm = String(d.getMinutes()).padStart(2, '0');
+      document.getElementById('sbTime').textContent = `${hh}:${mm}`;
+    }
+    tick();
+    setInterval(tick, 30_000);
+
+    reset();
   </script>
 </body>
 </html>
