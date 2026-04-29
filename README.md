@@ -1,49 +1,55 @@
-# swipeV2 · Action Stream Design Middleware
+# swipeV2
 
-swipeV2 is a lock-screen action-stream prototype. It explores how notifications
-become next actions, then shows the design process step by step on GitHub Pages.
+swipeV2 is a lock-screen action stream for turning notifications into the next
+thing a person can do.
 
-## Start Here
+The best place to understand the project is the design walkthrough:
 
-Open the step-by-step design middleware:
+**https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/**
 
-https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/
+## 中文阅读
 
-## 中文读者入口
+swipeV2 的核心不是“通知摘要”，而是：
 
-如果你想按中文说明阅读 swipeV2 的设计过程，从这里开始：
+**把通知变成下一步行动。**
 
-https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/
+推荐按这个顺序看：
 
-建议阅读顺序：
+1. 先看设计 walkthrough:
+   https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/
 
-1. 当前原生 iOS 基线:
+2. 再看当前 iOS 原型长什么样:
    https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/design.current-ios-app.html
-2. Swipe Feedback Lab:
+
+3. 然后看四向滑动反馈如何设计:
    https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/design.swipe-feedback.html
-3. Swipe Feedback 16 个方向探索:
-   https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/design.swipe-feedback-16.html
-4. 当前 swipeV2 iOS 实现状态:
-   https://liushiyumath.github.io/front-simple-screen-monitor/docs/swipev2-ios.md
-5. 可交互行动流 demo:
+
+4. 最后玩可交互 demo:
    https://liushiyumath.github.io/front-simple-screen-monitor/swipev2/
 
-## What To Look At
+## English Path
 
-- `design.current-ios-app.html` shows the current native iOS baseline.
-- `design.swipe-feedback.html` shows the selected Magnetic Edges feedback path.
-- `design.swipe-feedback-16.html` records broader four-way swipe explorations.
-- `docs/swipev2-ios.md` records what is implemented, how to run it, and how it
-  was verified.
-- `/swipev2/` is the interactive browser demo.
+Read it in this order:
 
-## Native iOS App
+1. Design walkthrough:
+   https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/
 
-The current native iOS app lives at:
+2. Current iOS baseline:
+   https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/design.current-ios-app.html
+
+3. Swipe feedback design:
+   https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/design.swipe-feedback.html
+
+4. Interactive demo:
+   https://liushiyumath.github.io/front-simple-screen-monitor/swipev2/
+
+## Current iOS App
+
+Native project:
 
 `swipev2/ios/ActivityMonitorApp.xcodeproj`
 
-Run the simulator test suite:
+Run tests:
 
 ```bash
 xcodebuild test \
@@ -53,7 +59,6 @@ xcodebuild test \
   -derivedDataPath /tmp/swipev2-ios-derived
 ```
 
-## Hosting
+Implementation status:
 
-This repo is static HTML and docs. GitHub Pages serves the design middleware and
-the interactive swipeV2 demo from the repository root.
+`docs/swipev2-ios.md`
