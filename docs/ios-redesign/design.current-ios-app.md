@@ -1,7 +1,7 @@
 # Design · Current iOS App
 
 Version name: `current-ios-app`
-Status: `BATCH_00_3_SKINS_IMPLEMENTED_2026-04-28`
+Status: `BATCH_00_MAGNETIC_EDGES_IMPLEMENTED_2026-04-29`
 
 ## Core
 
@@ -15,6 +15,7 @@ Status: `BATCH_00_3_SKINS_IMPLEMENTED_2026-04-28`
 - 中部是 4 张堆叠行动卡，但只有首卡完整展开；后 3 张压成背景队列预览。
 - 页面里不再放 `Swipe guide` 卡，不再放 `Fallback` 卡，也不再保留 quick action 菜单。
 - 主卡、quotes、次级 chips 和顶部 pill 仍然透明，但已经压厚，不再让后层内容直接透穿。
+- 当前原生卡堆已经采用 `Magnetic Edges`：拖动时四边轨道保持符号化提示，主方向边缘发亮。
 
 ## Behavior
 
@@ -23,10 +24,12 @@ Status: `BATCH_00_3_SKINS_IMPLEMENTED_2026-04-28`
 - 可见界面不再提供显式备用入口；无障碍 action 仍保留同等操作路径。
 - chip 点击只做 demo toast，不做真实跳转或代理执行。
 - 录屏 demo 会先轮播 `Bronze`、`Coral`、`Steel`，再进入手势流程。
+- 手势过程中从 `dragOffset` 派生 direction、progress、isCommitted，并把反馈贴近卡片边缘。
 
 ## Why It Matters
 
 - 这已经不是 future shortlist，而是当前 `swipeV2` iOS app 的真实前端基线。
+- `docs/ios-redesign/design.swipe-feedback.md` 选中的 `Magnetic Edges` 已落到当前原生 app。
 - `design.skin-shortlist.md` 与这份文档现在已经对齐：同一套结构，三套皮肤。
 - Batch 01/02/03 继续是 redesign 探索，不代表当前 app 已经采用它们。
 - 产品定义来自 `swipev2/product_design.md` 与 `proposal.md`。
