@@ -241,6 +241,7 @@ extension ActionProposal {
 
 struct NextMoveLockScreenView: View {
     @Environment(\.accessibilityReduceMotion) private var reduceMotion
+    @AppStorage("selectedSkinID") private var selectedSkinID = ActivityMonitorSkin.bronze.rawValue
     @State private var state = ActionStreamState()
     @State private var dragOffset: CGSize = .zero
     @State private var recordingDemoStarted = false
@@ -249,30 +250,54 @@ struct NextMoveLockScreenView: View {
         ProcessInfo.processInfo.arguments.contains("--recording-demo")
     }
 
+    private var launchSkinOverride: ActivityMonitorSkin? {
+        ProcessInfo.processInfo.arguments
+            .first(where: { $0.hasPrefix("--skin=") })
+            .flatMap { argument in
+                ActivityMonitorSkin(rawValue: String(argument.dropFirst("--skin=".count)))
+            }
+    }
+
+    private var selectedSkin: ActivityMonitorSkin {
+        ActivityMonitorSkin(rawValue: selectedSkinID) ?? .bronze
+    }
+
+    private var theme: ActivityMonitorTheme {
+        selectedSkin.theme
+    }
+
+    private var skinBinding: Binding<ActivityMonitorSkin> {
+        Binding(
+            get: { selectedSkin },
+            set: { selectedSkinID = $0.rawValue }
+        )
+    }
+
     var body: some View {
         ZStack {
-            LockWallpaperView()
+            LockWallpaperView(theme: theme)
 
             VStack(spacing: 0) {
-                StatusBarView()
-                HeaderView()
+                StatusBarView(theme: theme)
+                HeaderView(selectedSkin: skinBinding, theme: theme)
                 Spacer(minLength: 18)
                 CardStackView(
                     proposals: state.queue,
                     dragOffset: dragOffset,
                     onDragChanged: { dragOffset = $0 },
                     onDragEnded: handleDrag,
-                    onChip: handleChip
+                    onChip: handleChip,
+                    onAccessibilityAction: handleAction,
+                    theme: theme
                 )
                 .accessibilityIdentifier("action-card-stack")
-                Spacer(minLength: 14)
-                GestureHintBar(onAction: handleAction)
-                    .padding(.bottom, 10)
+                Spacer(minLength: 28)
             }
             .padding(.horizontal, 18)
+            .padding(.bottom, 18)
 
             if state.isEmpty {
-                EmptyStateView {
+                EmptyStateView(theme: theme) {
                     withMotion {
                         state.reset()
                     }
@@ -281,19 +306,20 @@ struct NextMoveLockScreenView: View {
             }
 
             if let toast = state.toast {
-                ToastView(toast: toast)
+                ToastView(toast: toast, theme: theme)
                     .transition(.move(edge: .bottom).combined(with: .opacity))
                     .accessibilityIdentifier("action-toast")
             }
         }
-        .preferredColorScheme(.dark)
+        .preferredColorScheme(theme.preferredScheme)
         .statusBarHidden(true)
         .sheet(item: detailBinding) { proposal in
-            DetailSheetView(proposal: proposal)
+            DetailSheetView(proposal: proposal, theme: theme)
                 .presentationDetents([.medium, .large])
                 .presentationDragIndicator(.visible)
         }
         .task {
+            applyLaunchSkinOverrideIfNeeded()
             await runRecordingDemoIfNeeded()
         }
     }
@@ -340,12 +366,26 @@ struct NextMoveLockScreenView: View {
         }
     }
 
+    private func applyLaunchSkinOverrideIfNeeded() {
+        guard let launchSkinOverride else { return }
+        selectedSkinID = launchSkinOverride.rawValue
+    }
+
     @MainActor
     private func runRecordingDemoIfNeeded() async {
         guard shouldRunRecordingDemo, !recordingDemoStarted else { return }
         recordingDemoStarted = true
 
-        await pause(1.4)
+        selectedSkinID = ActivityMonitorSkin.bronze.rawValue
+
+        await pause(1.0)
+        selectedSkinID = ActivityMonitorSkin.coral.rawValue
+        await pause(1.1)
+        selectedSkinID = ActivityMonitorSkin.steel.rawValue
+        await pause(1.1)
+        selectedSkinID = ActivityMonitorSkin.bronze.rawValue
+
+        await pause(1.2)
         if let chip = state.activeProposal?.chips.first {
             handleChip(chip)
         }
@@ -374,6 +414,7 @@ struct NextMoveLockScreenView: View {
         withMotion {
             state.reset()
         }
+        selectedSkinID = ActivityMonitorSkin.bronze.rawValue
     }
 
     @MainActor
@@ -404,27 +445,25 @@ struct NextMoveLockScreenView: View {
 }
 
 struct LockWallpaperView: View {
+    let theme: ActivityMonitorTheme
+
     var body: some View {
         LinearGradient(
-            colors: [
-                Color(red: 0.01, green: 0.02, blue: 0.07),
-                Color(red: 0.03, green: 0.07, blue: 0.14),
-                Color(red: 0.01, green: 0.02, blue: 0.05)
-            ],
+            colors: [theme.backgroundTop, theme.backgroundMid, theme.backgroundBottom],
             startPoint: .topLeading,
             endPoint: .bottomTrailing
         )
         .ignoresSafeArea()
         .overlay(alignment: .topLeading) {
             Circle()
-                .fill(Color.cyan.opacity(0.16))
+                .fill(theme.secondaryGlow)
                 .frame(width: 260, height: 260)
                 .blur(radius: 60)
                 .offset(x: -90, y: -80)
         }
         .overlay(alignment: .bottomTrailing) {
             Circle()
-                .fill(Color.green.opacity(0.11))
+                .fill(theme.ambientGlow)
                 .frame(width: 300, height: 300)
                 .blur(radius: 70)
                 .offset(x: 110, y: 90)
@@ -433,6 +472,8 @@ struct LockWallpaperView: View {
 }
 
 struct StatusBarView: View {
+    let theme: ActivityMonitorTheme
+
     var body: some View {
         HStack {
             Text(Date.now, style: .time)
@@ -445,7 +486,7 @@ struct StatusBarView: View {
             Image(systemName: "battery.75")
                 .font(.body.weight(.semibold))
         }
-        .foregroundStyle(.white.opacity(0.9))
+        .foregroundStyle(theme.primaryText.opacity(0.92))
         .padding(.top, 12)
         .accessibilityElement(children: .combine)
         .accessibilityLabel("锁屏状态栏")
@@ -453,32 +494,37 @@ struct StatusBarView: View {
 }
 
 struct HeaderView: View {
+    @Binding var selectedSkin: ActivityMonitorSkin
+    let theme: ActivityMonitorTheme
+
     var body: some View {
-        VStack(alignment: .leading, spacing: 12) {
+        VStack(alignment: .leading, spacing: 14) {
             Text("13:42")
-                .font(.system(size: 72, weight: .bold, design: .rounded))
+                .font(.system(size: 70, weight: .bold, design: .serif))
                 .monospacedDigit()
                 .minimumScaleFactor(0.72)
                 .accessibilityLabel("演示时间十三点四十二")
 
             HStack(spacing: 8) {
                 Text("4月27日 周一")
-                Circle().fill(.white.opacity(0.38)).frame(width: 3, height: 3)
+                Circle().fill(theme.tertiaryText).frame(width: 3, height: 3)
                 Text("朝阳区 · 锁屏")
             }
             .font(.subheadline.weight(.medium))
-            .foregroundStyle(.white.opacity(0.68))
+            .foregroundStyle(theme.secondaryText)
 
-            Label("正在把通知流转成行动提案", systemImage: "sparkles")
-                .font(.caption.weight(.semibold))
-                .foregroundStyle(.white.opacity(0.84))
-                .padding(.horizontal, 12)
-                .padding(.vertical, 9)
-                .background(.white.opacity(0.08), in: Capsule())
-                .overlay(Capsule().stroke(.white.opacity(0.12)))
+            VStack(alignment: .leading, spacing: 10) {
+                Label(selectedSkin.note, systemImage: "swatchpalette.fill")
+                    .font(.caption.weight(.semibold))
+                    .foregroundStyle(theme.primaryText.opacity(0.86))
+                    .padding(.horizontal, 12)
+                    .padding(.vertical, 9)
+                    .background(GlassCapsuleSurface(theme: theme, fill: theme.cardFill, border: theme.line))
+
+                SkinPickerView(selectedSkin: $selectedSkin, theme: theme)
+            }
         }
         .frame(maxWidth: .infinity, alignment: .leading)
-        .accessibilityElement(children: .combine)
     }
 }
 
@@ -488,16 +534,28 @@ struct CardStackView: View {
     let onDragChanged: (CGSize) -> Void
     let onDragEnded: (CGSize) -> Void
     let onChip: (ActionChip) -> Void
+    let onAccessibilityAction: (ProposalAction) -> Void
+    let theme: ActivityMonitorTheme
 
     var body: some View {
         ZStack {
             ForEach(Array(proposals.prefix(4).enumerated().reversed()), id: \.element.id) { index, proposal in
-                ActionProposalCard(proposal: proposal, onChip: onChip)
-                    .scaleEffect(index == 0 ? 1 : max(0.88, 1 - CGFloat(index) * 0.045))
-                    .offset(y: index == 0 ? dragOffset.height : CGFloat(index) * -13)
+                Group {
+                    if index == 0 {
+                        ActionProposalCard(proposal: proposal, onChip: onChip, theme: theme)
+                    } else {
+                        ActionProposalPreviewCard(
+                            proposal: proposal,
+                            theme: theme,
+                            depth: index
+                        )
+                    }
+                }
+                    .scaleEffect(index == 0 ? 1 : max(0.9, 1 - CGFloat(index) * 0.038))
+                    .offset(y: index == 0 ? dragOffset.height : CGFloat(index) * -16)
                     .offset(x: index == 0 ? dragOffset.width : 0)
                     .rotationEffect(index == 0 ? .degrees(Double(dragOffset.width / 24)) : .zero)
-                    .opacity(index == 0 ? 1 : max(0.28, 0.74 - Double(index) * 0.18))
+                    .opacity(index == 0 ? 1 : max(0.2, 0.58 - Double(index) * 0.14))
                     .zIndex(Double(10 - index))
                     .allowsHitTesting(index == 0)
                     .gesture(
@@ -508,30 +566,38 @@ struct CardStackView: View {
             }
         }
         .frame(height: 430)
+        .accessibilityElement(children: .contain)
+        .accessibilityLabel("行动卡堆")
+        .accessibilityHint("可通过滑动处理当前卡片，也可使用无障碍动作执行、丢掉、查看依据或稍后")
+        .accessibilityAction(named: Text("执行")) { onAccessibilityAction(.execute) }
+        .accessibilityAction(named: Text("丢掉")) { onAccessibilityAction(.discard) }
+        .accessibilityAction(named: Text("依据")) { onAccessibilityAction(.detail) }
+        .accessibilityAction(named: Text("稍后")) { onAccessibilityAction(.later) }
     }
 }
 
 struct ActionProposalCard: View {
     let proposal: ActionProposal
     let onChip: (ActionChip) -> Void
+    let theme: ActivityMonitorTheme
 
     var body: some View {
         VStack(alignment: .leading, spacing: 16) {
             HStack(spacing: 8) {
-                Circle().fill(Color.cyan).frame(width: 8, height: 8)
+                Circle().fill(theme.accent).frame(width: 8, height: 8)
                 Text(proposal.source)
                     .font(.caption.weight(.semibold))
                     .lineLimit(1)
                 Text("· \(proposal.sourceTime)")
                     .font(.caption2.weight(.medium))
-                    .foregroundStyle(.white.opacity(0.48))
+                    .foregroundStyle(theme.tertiaryText)
                 Spacer()
                 Text(proposal.confidence)
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(.green)
+                    .foregroundStyle(theme.accent)
                     .padding(.horizontal, 9)
                     .padding(.vertical, 5)
-                    .background(.green.opacity(0.13), in: Capsule())
+                    .background(theme.accent.opacity(0.14), in: Capsule())
             }
 
             VStack(alignment: .leading, spacing: 8) {
@@ -539,30 +605,41 @@ struct ActionProposalCard: View {
                     VStack(alignment: .leading, spacing: 3) {
                         Text("“\(quote.text)”")
                             .font(.subheadline.weight(.semibold))
-                            .foregroundStyle(Color(red: 0.95, green: 0.92, blue: 0.74))
+                            .foregroundStyle(theme.quoteText)
                             .lineLimit(2)
                         Text(quote.meta)
                             .font(.caption2)
-                            .foregroundStyle(.white.opacity(0.42))
+                            .foregroundStyle(theme.tertiaryText)
                     }
                     .padding(10)
                     .frame(maxWidth: .infinity, alignment: .leading)
-                    .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 12))
+                    .background(
+                        ZStack {
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(.regularMaterial)
+                            RoundedRectangle(cornerRadius: 12, style: .continuous)
+                                .fill(theme.quoteFill)
+                        }
+                    )
+                    .overlay(
+                        RoundedRectangle(cornerRadius: 12, style: .continuous)
+                            .stroke(theme.line.opacity(0.56))
+                    )
                 }
             }
 
             VStack(alignment: .leading, spacing: 7) {
                 Text(proposal.label)
                     .font(.caption2.weight(.bold))
-                    .foregroundStyle(.cyan)
+                    .foregroundStyle(theme.accent)
                     .textCase(.uppercase)
                 Text(proposal.title)
-                    .font(.title2.weight(.bold))
+                    .font(.system(.title2, design: .serif, weight: .bold))
                     .lineLimit(2)
                     .minimumScaleFactor(0.82)
                 Text(proposal.because)
                     .font(.footnote)
-                    .foregroundStyle(.white.opacity(0.64))
+                    .foregroundStyle(theme.secondaryText)
                     .lineLimit(3)
             }
 
@@ -576,61 +653,166 @@ struct ActionProposalCard: View {
                             .frame(maxWidth: .infinity, minHeight: 44)
                     }
                     .buttonStyle(.plain)
-                    .foregroundStyle(chip.isPrimary ? .black : .white.opacity(0.86))
-                    .background(chip.isPrimary ? Color.green : Color.white.opacity(0.08), in: Capsule())
-                    .overlay(Capsule().stroke(chip.isPrimary ? Color.clear : Color.white.opacity(0.12)))
+                    .foregroundStyle(chip.isPrimary ? theme.accentInk : theme.primaryText.opacity(0.9))
+                    .background(
+                        chip.isPrimary
+                        ? AnyView(Capsule().fill(theme.accent))
+                        : AnyView(GlassCapsuleSurface(theme: theme, fill: theme.chipFill, border: theme.line))
+                    )
                     .accessibilityLabel("\(chip.title)，演示按钮，不会实际跳转")
                 }
             }
         }
         .padding(18)
         .frame(maxWidth: .infinity, minHeight: 390, alignment: .top)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 28, style: .continuous))
-        .overlay(RoundedRectangle(cornerRadius: 28).stroke(.white.opacity(0.16)))
-        .shadow(color: .black.opacity(0.42), radius: 26, y: 18)
+        .background(GlassCardSurface(theme: theme, isPreview: false))
+        .shadow(color: theme.shadowColor, radius: 26, y: 18)
         .accessibilityElement(children: .contain)
         .accessibilityLabel("行动提案，\(proposal.title)")
     }
 }
 
-struct GestureHintBar: View {
-    let onAction: (ProposalAction) -> Void
+struct ActionProposalPreviewCard: View {
+    let proposal: ActionProposal
+    let theme: ActivityMonitorTheme
+    let depth: Int
 
     var body: some View {
-        HStack(spacing: 8) {
-            HintButton(title: "丢掉", systemImage: "arrow.left", action: { onAction(.discard) })
-            HintButton(title: "执行", systemImage: "arrow.right", action: { onAction(.execute) })
-            HintButton(title: "依据", systemImage: "arrow.up", action: { onAction(.detail) })
-            HintButton(title: "稍后", systemImage: "arrow.down", action: { onAction(.later) })
+        VStack(alignment: .leading, spacing: 14) {
+            HStack(spacing: 8) {
+                Circle().fill(theme.accent.opacity(0.88)).frame(width: 8, height: 8)
+                Text(proposal.source)
+                    .font(.caption.weight(.semibold))
+                    .lineLimit(1)
+                Spacer()
+                Text(proposal.confidence)
+                    .font(.caption2.weight(.bold))
+                    .foregroundStyle(theme.accent)
+            }
+
+            Text(proposal.title)
+                .font(.system(.headline, design: .serif, weight: .bold))
+                .lineLimit(depth == 1 ? 2 : 1)
+                .foregroundStyle(theme.primaryText.opacity(0.92))
+
+            HStack(spacing: 8) {
+                Capsule()
+                    .fill(theme.quoteFill)
+                    .frame(width: depth == 1 ? 112 : 90, height: 12)
+                Capsule()
+                    .fill(theme.chipFill)
+                    .frame(width: depth == 1 ? 84 : 62, height: 12)
+            }
+        }
+        .padding(18)
+        .frame(maxWidth: .infinity, minHeight: 390, alignment: .top)
+        .background(GlassCardSurface(theme: theme, isPreview: true))
+        .shadow(color: theme.shadowColor.opacity(0.72), radius: 20, y: 14)
+        .accessibilityHidden(true)
+    }
+}
+
+struct GlassCardSurface: View {
+    let theme: ActivityMonitorTheme
+    let isPreview: Bool
+
+    var body: some View {
+        let shape = RoundedRectangle(cornerRadius: 28, style: .continuous)
+
+        ZStack {
+            shape.fill(.thinMaterial)
+            shape.fill(theme.cardFill.opacity(isPreview ? 0.92 : 1))
+            shape.fill(
+                LinearGradient(
+                    colors: [highlightColor, Color.clear, shadowColor],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+        }
+        .overlay(shape.stroke(theme.line.opacity(isPreview ? 0.78 : 1)))
+        .overlay(shape.inset(by: 1).stroke(highlightColor.opacity(isPreview ? 0.2 : 0.28)))
+    }
+
+    private var highlightColor: Color {
+        theme.preferredScheme == .dark
+            ? theme.primaryText.opacity(isPreview ? 0.06 : 0.1)
+            : Color.white.opacity(isPreview ? 0.2 : 0.34)
+    }
+
+    private var shadowColor: Color {
+        theme.preferredScheme == .dark
+            ? Color.black.opacity(isPreview ? 0.12 : 0.18)
+            : theme.backgroundBottom.opacity(isPreview ? 0.1 : 0.18)
+    }
+}
+
+struct GlassCapsuleSurface: View {
+    let theme: ActivityMonitorTheme
+    let fill: Color
+    let border: Color
+
+    var body: some View {
+        let shape = Capsule()
+
+        ZStack {
+            shape.fill(.regularMaterial)
+            shape.fill(fill)
+            shape.fill(
+                LinearGradient(
+                    colors: [highlightColor, Color.clear, shadowColor],
+                    startPoint: .topLeading,
+                    endPoint: .bottomTrailing
+                )
+            )
+        }
+        .overlay(shape.stroke(border))
+    }
+
+    private var highlightColor: Color {
+        theme.preferredScheme == .dark
+            ? theme.primaryText.opacity(0.07)
+            : Color.white.opacity(0.3)
+    }
+
+    private var shadowColor: Color {
+        theme.preferredScheme == .dark
+            ? Color.black.opacity(0.12)
+            : theme.backgroundBottom.opacity(0.12)
+    }
+}
+
+struct SkinPickerView: View {
+    @Binding var selectedSkin: ActivityMonitorSkin
+    let theme: ActivityMonitorTheme
+
+    var body: some View {
+        HStack(spacing: 10) {
+            ForEach(ActivityMonitorSkin.allCases) { skin in
+                Button {
+                    selectedSkin = skin
+                } label: {
+                    Text(skin.title)
+                        .font(.caption.weight(.semibold))
+                        .frame(maxWidth: .infinity, minHeight: 40)
+                        .background(
+                            selectedSkin == skin
+                            ? AnyView(Capsule().fill(theme.accent))
+                            : AnyView(GlassCapsuleSurface(theme: theme, fill: theme.cardFill, border: theme.line))
+                        )
+                }
+                .buttonStyle(.plain)
+                .foregroundStyle(selectedSkin == skin ? theme.accentInk : theme.primaryText.opacity(0.9))
+                .accessibilityLabel("切换到\(skin.headline)皮肤")
+            }
         }
         .accessibilityElement(children: .contain)
     }
 }
 
-struct HintButton: View {
-    let title: String
-    let systemImage: String
-    let action: () -> Void
-
-    var body: some View {
-        Button(action: action) {
-            VStack(spacing: 5) {
-                Image(systemName: systemImage)
-                    .font(.caption.weight(.bold))
-                Text(title)
-                    .font(.caption2.weight(.semibold))
-            }
-            .frame(maxWidth: .infinity, minHeight: 52)
-            .background(.white.opacity(0.07), in: RoundedRectangle(cornerRadius: 14))
-            .overlay(RoundedRectangle(cornerRadius: 14).stroke(.white.opacity(0.12)))
-        }
-        .buttonStyle(.plain)
-        .foregroundStyle(.white.opacity(0.78))
-    }
-}
-
 struct DetailSheetView: View {
     let proposal: ActionProposal
+    let theme: ActivityMonitorTheme
 
     var body: some View {
         NavigationStack {
@@ -638,13 +820,13 @@ struct DetailSheetView: View {
                 VStack(alignment: .leading, spacing: 18) {
                     Text("判断依据")
                         .font(.caption.weight(.bold))
-                        .foregroundStyle(.cyan)
+                        .foregroundStyle(theme.accent)
                         .textCase(.uppercase)
                     Text(proposal.title)
-                        .font(.title2.weight(.bold))
+                        .font(.system(.title2, design: .serif, weight: .bold))
                     Text(proposal.sheetText)
                         .font(.body)
-                        .foregroundStyle(.secondary)
+                        .foregroundStyle(theme.secondaryText)
 
                     VStack(alignment: .leading, spacing: 10) {
                         ForEach(Array(proposal.steps.enumerated()), id: \.offset) { index, step in
@@ -652,51 +834,60 @@ struct DetailSheetView: View {
                                 Text("\(index + 1)")
                                     .font(.caption.weight(.bold))
                                     .frame(width: 24, height: 24)
-                                    .background(Color.cyan.opacity(0.16), in: Circle())
+                                    .background(theme.accent.opacity(0.16), in: Circle())
                                 Text(step)
                                     .font(.subheadline)
                             }
                             .padding(12)
                             .frame(maxWidth: .infinity, alignment: .leading)
-                            .background(Color(.secondarySystemGroupedBackground), in: RoundedRectangle(cornerRadius: 14))
+                            .background(theme.cardFill, in: RoundedRectangle(cornerRadius: 14))
+                            .overlay(RoundedRectangle(cornerRadius: 14).stroke(theme.line))
                         }
                     }
                 }
                 .padding(20)
             }
+            .scrollContentBackground(.hidden)
+            .background(theme.sheetBackground)
             .navigationTitle("NextMove")
             .navigationBarTitleDisplayMode(.inline)
         }
+        .background(theme.sheetBackground)
     }
 }
 
 struct EmptyStateView: View {
+    let theme: ActivityMonitorTheme
     let onReset: () -> Void
 
     var body: some View {
         VStack(spacing: 16) {
             Image(systemName: "checkmark.circle.fill")
                 .font(.system(size: 58, weight: .semibold))
-                .foregroundStyle(.green)
+                .foregroundStyle(theme.accent)
             Text("行动流已清空")
                 .font(.title2.weight(.bold))
             Text("通知都已经变成演示结果。没有更多需要你现在判断的主卡片。")
                 .font(.subheadline)
                 .multilineTextAlignment(.center)
-                .foregroundStyle(.white.opacity(0.66))
+                .foregroundStyle(theme.secondaryText)
             Button("重置 demo", action: onReset)
-                .buttonStyle(.borderedProminent)
-                .controlSize(.large)
+                .font(.headline.weight(.semibold))
+                .padding(.horizontal, 18)
+                .padding(.vertical, 12)
+                .background(theme.accent, in: Capsule())
+                .foregroundStyle(theme.accentInk)
         }
         .padding(24)
         .frame(maxWidth: 320)
-        .background(.ultraThinMaterial, in: RoundedRectangle(cornerRadius: 26))
-        .overlay(RoundedRectangle(cornerRadius: 26).stroke(.white.opacity(0.16)))
+        .background(theme.cardFill, in: RoundedRectangle(cornerRadius: 26))
+        .overlay(RoundedRectangle(cornerRadius: 26).stroke(theme.line))
     }
 }
 
 struct ToastView: View {
     let toast: ActionToast
+    let theme: ActivityMonitorTheme
 
     var body: some View {
         Text(toast.text)
@@ -716,21 +907,21 @@ struct ToastView: View {
 
     private var background: Color {
         switch toast.kind {
-        case .execute: return Color.green.opacity(0.28)
-        case .discard: return Color.red.opacity(0.28)
-        case .neutral: return Color.white.opacity(0.12)
+        case .execute: return theme.success.opacity(0.24)
+        case .discard: return theme.danger.opacity(0.26)
+        case .neutral: return theme.neutralFill
         }
     }
 
     private var border: Color {
         switch toast.kind {
-        case .execute: return Color.green.opacity(0.46)
-        case .discard: return Color.red.opacity(0.46)
-        case .neutral: return Color.white.opacity(0.16)
+        case .execute: return theme.success.opacity(0.46)
+        case .discard: return theme.danger.opacity(0.5)
+        case .neutral: return theme.line
         }
     }
 
     private var foreground: Color {
-        toast.kind == .execute ? Color(red: 0.88, green: 1, blue: 0.78) : .white
+        toast.kind == .execute ? theme.accentInk : theme.primaryText
     }
 }
