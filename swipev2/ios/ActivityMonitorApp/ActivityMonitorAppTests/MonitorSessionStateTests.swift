@@ -63,6 +63,22 @@ final class ActionStreamStateTests: XCTestCase {
         XCTAssertNil(state.toast)
     }
 
+    func testSwipeFeedbackMapsDominantEdgeBeforeCommit() throws {
+        let feedback = try XCTUnwrap(SwipeFeedback(translation: CGSize(width: 18, height: -42)))
+
+        XCTAssertEqual(feedback.action, .detail)
+        XCTAssertFalse(feedback.isCommitted)
+        XCTAssertGreaterThan(feedback.progress, 0)
+    }
+
+    func testSwipeFeedbackMarksCommittedAtThreshold() throws {
+        let feedback = try XCTUnwrap(SwipeFeedback(translation: CGSize(width: -ActionStreamState.swipeThreshold, height: 4)))
+
+        XCTAssertEqual(feedback.action, .discard)
+        XCTAssertTrue(feedback.isCommitted)
+        XCTAssertEqual(feedback.progress, 1)
+    }
+
     func testChipFeedbackIsDemoOnlyAndNonNavigating() throws {
         var state = ActionStreamState()
         let chip = try XCTUnwrap(state.activeProposal?.chips.first)

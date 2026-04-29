@@ -23,6 +23,27 @@ enum ToastKind: Equatable {
     case neutral
 }
 
+struct SwipeFeedback: Equatable {
+    let action: ProposalAction
+    let progress: CGFloat
+    let isCommitted: Bool
+
+    init?(translation: CGSize, threshold: CGFloat = ActionStreamState.swipeThreshold) {
+        let ax = abs(translation.width)
+        let ay = abs(translation.height)
+        guard max(ax, ay) >= 6 else { return nil }
+
+        if ax > ay {
+            action = translation.width > 0 ? .execute : .discard
+        } else {
+            action = translation.height < 0 ? .detail : .later
+        }
+        let dominantDistance = max(ax, ay)
+        progress = min(dominantDistance / threshold, 1.18)
+        isCommitted = dominantDistance >= threshold
+    }
+}
+
 struct ActionChip: Identifiable, Equatable {
     let id = UUID()
     let symbol: String
@@ -539,10 +560,17 @@ struct CardStackView: View {
 
     var body: some View {
         ZStack {
+            MagneticEdgesFeedbackView(feedback: feedback, theme: theme)
+
             ForEach(Array(proposals.prefix(4).enumerated().reversed()), id: \.element.id) { index, proposal in
                 Group {
                     if index == 0 {
-                        ActionProposalCard(proposal: proposal, onChip: onChip, theme: theme)
+                        ActionProposalCard(
+                            proposal: proposal,
+                            feedback: feedback,
+                            onChip: onChip,
+                            theme: theme
+                        )
                     } else {
                         ActionProposalPreviewCard(
                             proposal: proposal,
@@ -574,10 +602,15 @@ struct CardStackView: View {
         .accessibilityAction(named: Text("依据")) { onAccessibilityAction(.detail) }
         .accessibilityAction(named: Text("稍后")) { onAccessibilityAction(.later) }
     }
+
+    private var feedback: SwipeFeedback? {
+        SwipeFeedback(translation: dragOffset)
+    }
 }
 
 struct ActionProposalCard: View {
     let proposal: ActionProposal
+    let feedback: SwipeFeedback?
     let onChip: (ActionChip) -> Void
     let theme: ActivityMonitorTheme
 
@@ -666,9 +699,204 @@ struct ActionProposalCard: View {
         .padding(18)
         .frame(maxWidth: .infinity, minHeight: 390, alignment: .top)
         .background(GlassCardSurface(theme: theme, isPreview: false))
+        .overlay(MagneticCardEdgeOverlay(feedback: feedback, theme: theme))
         .shadow(color: theme.shadowColor, radius: 26, y: 18)
         .accessibilityElement(children: .contain)
-        .accessibilityLabel("行动提案，\(proposal.title)")
+        .accessibilityLabel(accessibilityLabel)
+        .accessibilityValue(accessibilityValue)
+    }
+
+    private var accessibilityLabel: String {
+        "行动提案，\(proposal.title)"
+    }
+
+    private var accessibilityValue: String {
+        guard let feedback else { return "" }
+        return "\(feedback.action.accessibilityName)，\(Int(feedback.progress * 100))%"
+    }
+}
+
+struct MagneticEdgesFeedbackView: View {
+    let feedback: SwipeFeedback?
+    let theme: ActivityMonitorTheme
+
+    var body: some View {
+        GeometryReader { proxy in
+            ZStack {
+                edgeRail(.discard, size: proxy.size)
+                edgeRail(.execute, size: proxy.size)
+                edgeRail(.detail, size: proxy.size)
+                edgeRail(.later, size: proxy.size)
+
+                if let feedback {
+                    Image(systemName: feedback.action.symbolName)
+                        .font(.system(size: 17 + feedback.progress * 8, weight: .bold))
+                        .foregroundStyle(feedback.action.inkColor(theme: theme))
+                        .frame(width: 42 + feedback.progress * 10, height: 42 + feedback.progress * 10)
+                        .background(
+                            Circle()
+                                .fill(feedback.action.tintColor(theme: theme).opacity(0.88))
+                        )
+                        .overlay(
+                            Circle()
+                                .stroke(theme.primaryText.opacity(feedback.isCommitted ? 0.42 : 0.2), lineWidth: 1)
+                        )
+                        .shadow(
+                            color: feedback.action.tintColor(theme: theme).opacity(0.34),
+                            radius: 12 + feedback.progress * 10,
+                            y: 4
+                        )
+                        .position(symbolPosition(for: feedback.action, size: proxy.size, progress: feedback.progress))
+                        .transition(.scale.combined(with: .opacity))
+                        .accessibilityHidden(true)
+                }
+            }
+        }
+        .padding(.horizontal, -8)
+        .padding(.vertical, -6)
+        .allowsHitTesting(false)
+        .accessibilityHidden(true)
+    }
+
+    private func edgeRail(_ action: ProposalAction, size: CGSize) -> some View {
+        let isActive = feedback?.action == action
+        let progress = isActive ? feedback?.progress ?? 0 : 0
+        let color = action.tintColor(theme: theme)
+        let opacity = isActive ? 0.2 + progress * 0.44 : 0.09
+        let thickness = isActive ? 7 + progress * 9 : 5
+        let length = isActive ? 104 + progress * 92 : 78
+
+        return Capsule()
+            .fill(color.opacity(opacity))
+            .overlay(Capsule().stroke(color.opacity(isActive ? 0.46 : 0.16), lineWidth: 1))
+            .frame(
+                width: action.isHorizontalEdge ? length : thickness,
+                height: action.isHorizontalEdge ? thickness : length
+            )
+            .position(railPosition(for: action, size: size))
+    }
+
+    private func railPosition(for action: ProposalAction, size: CGSize) -> CGPoint {
+        switch action {
+        case .discard:
+            return CGPoint(x: 10, y: size.height / 2)
+        case .execute:
+            return CGPoint(x: size.width - 10, y: size.height / 2)
+        case .detail:
+            return CGPoint(x: size.width / 2, y: 10)
+        case .later:
+            return CGPoint(x: size.width / 2, y: size.height - 10)
+        }
+    }
+
+    private func symbolPosition(for action: ProposalAction, size: CGSize, progress: CGFloat) -> CGPoint {
+        let inset = 28 - min(progress, 1) * 8
+        switch action {
+        case .discard:
+            return CGPoint(x: inset, y: size.height / 2)
+        case .execute:
+            return CGPoint(x: size.width - inset, y: size.height / 2)
+        case .detail:
+            return CGPoint(x: size.width / 2, y: inset)
+        case .later:
+            return CGPoint(x: size.width / 2, y: size.height - inset)
+        }
+    }
+}
+
+struct MagneticCardEdgeOverlay: View {
+    let feedback: SwipeFeedback?
+    let theme: ActivityMonitorTheme
+
+    var body: some View {
+        GeometryReader { proxy in
+            if let feedback {
+                let color = feedback.action.tintColor(theme: theme)
+                let progress = feedback.progress
+
+                ZStack {
+                    RoundedRectangle(cornerRadius: 28, style: .continuous)
+                        .stroke(color.opacity(0.18 + progress * 0.34), lineWidth: 1 + progress * 1.4)
+
+                    Capsule()
+                        .fill(color.opacity(0.38 + progress * 0.28))
+                        .frame(
+                            width: feedback.action.isHorizontalEdge ? 92 + progress * 94 : 7 + progress * 9,
+                            height: feedback.action.isHorizontalEdge ? 7 + progress * 9 : 92 + progress * 94
+                        )
+                        .position(edgePosition(for: feedback.action, size: proxy.size))
+                        .shadow(color: color.opacity(0.34), radius: 12 + progress * 12)
+                }
+            }
+        }
+        .allowsHitTesting(false)
+    }
+
+    private func edgePosition(for action: ProposalAction, size: CGSize) -> CGPoint {
+        switch action {
+        case .discard:
+            return CGPoint(x: 4, y: size.height / 2)
+        case .execute:
+            return CGPoint(x: size.width - 4, y: size.height / 2)
+        case .detail:
+            return CGPoint(x: size.width / 2, y: 4)
+        case .later:
+            return CGPoint(x: size.width / 2, y: size.height - 4)
+        }
+    }
+}
+
+private extension ProposalAction {
+    var symbolName: String {
+        switch self {
+        case .execute:
+            return "bolt.fill"
+        case .discard:
+            return "xmark"
+        case .later:
+            return "clock.arrow.circlepath"
+        case .detail:
+            return "doc.text.magnifyingglass"
+        }
+    }
+
+    var accessibilityName: String {
+        switch self {
+        case .execute:
+            return "执行"
+        case .discard:
+            return "丢掉"
+        case .later:
+            return "稍后"
+        case .detail:
+            return "依据"
+        }
+    }
+
+    var isHorizontalEdge: Bool {
+        self == .detail || self == .later
+    }
+
+    func tintColor(theme: ActivityMonitorTheme) -> Color {
+        switch self {
+        case .execute:
+            return theme.success
+        case .discard:
+            return theme.danger
+        case .later:
+            return theme.accent
+        case .detail:
+            return theme.primaryText
+        }
+    }
+
+    func inkColor(theme: ActivityMonitorTheme) -> Color {
+        switch self {
+        case .execute, .later:
+            return theme.accentInk
+        case .discard, .detail:
+            return theme.backgroundBottom
+        }
     }
 }
 
