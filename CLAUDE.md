@@ -38,6 +38,12 @@ When engineer work finishes, update the related docs before calling the job done
 The docs must say what changed, how to run it, how to verify it, and the current
 status if the work has a named area such as e2e.
 
+When an iOS app small version is done, record a fresh MP4 for that version and
+Taildrop it to `m1macbook-air`, then pop open that MP4 on `m1macbook-air`
+before calling the work done. Update the docs with the new MP4 path, how it was
+recorded, how Taildrop was sent, whether the MP4 was popped open on
+`m1macbook-air`, and the current video status.
+
 After updating docs for finished engineer work, run this probe:
 
 ```bash
