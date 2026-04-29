@@ -4,16 +4,35 @@ Backend snaps screen every 5s, guesses user intent, frontend asks for royal cons
 
 ## Live
 
-https://liush2yuxjtu.github.io/front-simple-screen-monitor/
+https://liushiyumath.github.io/front-simple-screen-monitor/
+
+## swipeV2 design middleware
+
+Start here for the step-by-step swipeV2 design story:
+
+https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/
+
+Key checkpoints:
+
+- Current native iOS baseline:
+  https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/design.current-ios-app.html
+- Swipe feedback lab:
+  https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/design.swipe-feedback.html
+- Swipe feedback 16-way exploration:
+  https://liushiyumath.github.io/front-simple-screen-monitor/docs/ios-redesign/design.swipe-feedback-16.html
+- Current iOS implementation status:
+  https://liushiyumath.github.io/front-simple-screen-monitor/docs/swipev2-ios.md
+- Interactive action-stream demo:
+  https://liushiyumath.github.io/front-simple-screen-monitor/swipev2/
 
 ## Demo in 60 seconds
 
 AI can see your screen, so Activity Monitor asks before it acts. Swipe right to
 ALLOW, swipe left to BLOCK, and every decision updates the trust log.
 
-- Watch: https://liush2yuxjtu.github.io/front-simple-screen-monitor/assets/demo/activity-monitor-canonical-demo-2026-04-24T05-01-34.mp4
-- Try: https://liush2yuxjtu.github.io/front-simple-screen-monitor/island-swipe/
-- Try action stream: https://liush2yuxjtu.github.io/front-simple-screen-monitor/swipev2/
+- Watch: https://liushiyumath.github.io/front-simple-screen-monitor/assets/demo/activity-monitor-canonical-demo-2026-04-24T05-01-34.mp4
+- Try: https://liushiyumath.github.io/front-simple-screen-monitor/island-swipe/
+- Try action stream: https://liushiyumath.github.io/front-simple-screen-monitor/swipev2/
 - Current proof status: canonical proof clip is checked in for GitHub Pages static hosting.
 
 ## Four chambers
